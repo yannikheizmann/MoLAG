@@ -1,0 +1,103 @@
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Literal
+
+from pydantic import Field, NonNegativeFloat, NonNegativeInt, PositiveFloat, PositiveInt
+
+from molag.utils.argparsing import AdditionalArgsBase
+
+
+class TrainingArgs(AdditionalArgsBase):
+    """MoLAG training configuration."""
+
+    output_dir: Path = Field(
+        default=Path("results"),
+        description="Directory receiving checkpoints and run metadata.",
+    )
+    per_device_train_batch_size: PositiveInt = Field(
+        default=256,
+        description="Number of scenes in one physical training batch per device.",
+    )
+    gradient_accumulation_steps: PositiveInt = Field(
+        default=4,
+        description="Physical batches accumulated before one optimiser update.",
+    )
+    per_device_eval_batch_size: PositiveInt = Field(
+        default=128,
+        description="Number of scenes evaluated per device and step.",
+    )
+    learning_rate: PositiveFloat = Field(
+        default=1e-3,
+        description="Peak optimiser learning rate.",
+    )
+    weight_decay: NonNegativeFloat = Field(
+        default=0.0,
+        description="Weight-decay coefficient.",
+    )
+    num_train_epochs: PositiveInt = Field(
+        default=10,
+        description="Number of complete passes over the generated training dataset.",
+    )
+    lr_scheduler_type: Literal["linear", "cosine"] = Field(
+        default="cosine",
+        description="Learning-rate schedule applied after warm-up.",
+    )
+    warmup_ratio: float = Field(
+        default=0.01,
+        ge=0,
+        lt=1,
+        description="Fraction of optimiser steps used for learning-rate warm-up.",
+    )
+    logging_steps: PositiveInt = Field(
+        default=100,
+        description="Optimiser steps between training log entries.",
+    )
+    eval_steps: PositiveInt = Field(
+        default=5_000,
+        description="Optimiser steps between in-training evaluations.",
+    )
+    save_steps: PositiveInt = Field(
+        default=5_000,
+        description="Optimiser steps between checkpoints.",
+    )
+    save_total_limit: PositiveInt = Field(
+        default=3,
+        description="Maximum number of intermediate checkpoints retained.",
+    )
+    dataloader_num_workers: NonNegativeInt = Field(
+        default=8,
+        description="Worker processes used by each training data loader.",
+    )
+    dataloader_persistent_workers: bool = Field(
+        default=True,
+        description="Keep data-loader workers alive between epochs.",
+    )
+    fp16: bool = Field(
+        default=False,
+        description="Use IEEE float16 mixed precision.",
+    )
+    bf16: bool = Field(
+        default=True,
+        description="Use bfloat16 mixed precision.",
+    )
+    seed: int = Field(
+        default=42,
+        description="Seed for model initialisation and training operations.",
+    )
+    metric_for_best_model: Literal["loss", "grouping_accuracy"] = Field(
+        default="loss",
+        description="Evaluation metric used to select the retained checkpoint.",
+    )
+    load_best_model_at_end: bool = Field(
+        default=True,
+        description="Restore the best retained checkpoint after training.",
+    )
+    resume_from_checkpoint: Path | None = Field(
+        default=None,
+        description="Checkpoint directory from which training should resume.",
+    )
+
+    def model_post_init(self, __context: object) -> None:
+        if self.fp16 and self.bf16:
+            raise ValueError("fp16 and bf16 cannot both be enabled")

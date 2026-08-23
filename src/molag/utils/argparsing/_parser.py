@@ -49,6 +49,8 @@ class ArgsParser:
                 raise ConfigKeyError(self._format_unknown_keys(unknown))
 
         cli_values = self._normalise_cli_values(explicit)
+        if config_path is not None and "config" in self._args_type.model_fields:
+            cli_values["config"] = config_path
         defaults = self._model_defaults(self._args_type)
         merged = self._deep_merge(defaults, yaml_values)
         merged = self._deep_merge(merged, cli_values)
@@ -91,12 +93,13 @@ class ArgsParser:
 
     def _build_parser(self) -> argparse.ArgumentParser:
         parser = argparse.ArgumentParser()
-        parser.add_argument(
-            "--config",
-            type=Path,
-            default=argparse.SUPPRESS,
-            help="YAML file whose values override the Pydantic defaults.",
-        )
+        if "config" not in self._args_type.model_fields:
+            parser.add_argument(
+                "--config",
+                type=Path,
+                default=argparse.SUPPRESS,
+                help="YAML file whose values override the Pydantic defaults.",
+            )
 
         type_hints = get_type_hints(self._args_type)
         for field_name, field_type in type_hints.items():
