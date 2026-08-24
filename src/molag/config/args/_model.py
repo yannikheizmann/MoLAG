@@ -24,6 +24,10 @@ class ModelArgs(AdditionalArgsBase):
         default=3,
         description="Number of geometric edge features supplied to every block.",
     )
+    message_alignment: PositiveInt = Field(
+        default=8,
+        description="Input-width alignment used by EdgeConv message MLPs.",
+    )
     edge_head_dims: list[PositiveInt] = Field(
         default_factory=lambda: [128],
         min_length=1,

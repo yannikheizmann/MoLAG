@@ -26,6 +26,7 @@ def test_molag_defaults() -> None:
         2048,
         1024,
     ]
+    assert args.model_args.message_alignment == 8
     assert args.model_args.edge_head_dims == [128]
     assert args.model_args.separation_weight == 0.46
     assert args.model_args.aggregation_beta == 1.0
