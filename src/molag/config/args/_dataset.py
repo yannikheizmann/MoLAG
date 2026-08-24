@@ -11,7 +11,7 @@ class DatasetArgs(AdditionalArgsBase):
     """Dataset profile selection and generated split sizes."""
 
     dataset_profile: Path = Field(
-        default=Path("profiles/varied_grouping_max_10.yaml"),
+        default=Path("src/molag/dataset/profiles/molag_standard.yaml"),
         description="YAML profile specifying synthetic dataset generation.",
     )
     train_size: PositiveInt = Field(

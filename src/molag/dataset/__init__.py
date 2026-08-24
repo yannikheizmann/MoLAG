@@ -1,6 +1,6 @@
 """Synthetic coordinate-set generation for MoLAG."""
 
-from ._config import PoseConfig
+from ._config import DatasetConfig, PoseConfig
 from .modifiers import (
     AnyModifier,
     DropoutModifier,
@@ -22,6 +22,7 @@ from .tracker import (
 
 __all__ = [
     "PoseConfig",
+    "DatasetConfig",
     "Sample",
     "CameraIntrinsics",
     "AnyModifier",

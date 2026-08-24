@@ -12,7 +12,7 @@ def test_molag_defaults() -> None:
     args = Args()
 
     assert args.dataset_args.dataset_profile == Path(
-        "profiles/varied_grouping_max_10.yaml"
+        "src/molag/dataset/profiles/molag_standard.yaml"
     )
     assert args.config is None
     assert args.dataset_args.train_size == 5_000_000

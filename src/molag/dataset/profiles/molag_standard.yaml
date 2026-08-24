@@ -1,0 +1,26 @@
+size: 50000
+num_trackers:
+  - 1
+  - 10
+tracker: Triangular
+seed: 0
+modifiers:
+  - type: Dropout
+    probability: 0.8
+    drop_probability: 0.4
+    min_leds_per_tracker: 3
+  - type: SpuriousBlobs
+    probability: 0.3
+    min_blobs: 1
+    max_blobs: 4
+  - type: PixelNoise
+    probability: 0.8
+    std: 0.02
+pose:
+  x_min: -200.0
+  x_max: 200.0
+  y_min: -200.0
+  y_max: 200.0
+  z_min: 100.0
+  z_max: 600.0
+  max_tilt_deg: 85.0
