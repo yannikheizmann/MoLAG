@@ -8,6 +8,7 @@ version = "0.1.0.dev0"
 description = "Monocular LED assignment with a graph neural network"
 requires-python = ">=3.11"
 dependencies = [
+    "numpy>=2.0",
     "pydantic>=2.12",
     "pyyaml>=6.0",
 ]
@@ -23,4 +24,3 @@ packages = ["src/molag"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-v"
-
