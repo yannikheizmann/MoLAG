@@ -1,6 +1,7 @@
 """Synthetic coordinate-set generation for MoLAG."""
 
 from ._config import PoseConfig
+from .sample import Sample
 from .tracker import (
     CameraIntrinsics,
     TrackerBase,
@@ -14,6 +15,7 @@ from .tracker import (
 
 __all__ = [
     "PoseConfig",
+    "Sample",
     "CameraIntrinsics",
     "TrackerBase",
     "TrackerCodeBase",
