@@ -2,6 +2,7 @@
 
 from ._config import PoseConfig
 from .tracker import (
+    CameraIntrinsics,
     TrackerBase,
     TrackerCodeBase,
     TrackerGeometryBase,
@@ -13,6 +14,7 @@ from .tracker import (
 
 __all__ = [
     "PoseConfig",
+    "CameraIntrinsics",
     "TrackerBase",
     "TrackerCodeBase",
     "TrackerGeometryBase",
