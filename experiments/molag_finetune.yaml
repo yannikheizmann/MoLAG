@@ -1,0 +1,54 @@
+dataset_args:
+  dataset_profile: src/molag/dataset/profiles/molag_standard.yaml
+  train_size: 5000000
+  eval_size: 10000
+model_args:
+  in_dim: 2
+  hidden_dims: [128, 256, 512, 1024, 2048, 2048, 1024]
+  edge_feature_dim: 3
+  message_alignment: 8
+  edge_head_dims: [128]
+loss_args:
+  connectivity_weight: 1.0
+  connectivity_margin: 1.0
+  separation_weight: 0.46
+  separation_margin: 1.0
+  spurious_bridge_weight: 0.25
+  spurious_margin: 0.0
+  max_tracker_nodes: 7
+  aggregation_beta: 1.0
+  delta_nontree: 3.0
+  eps_spur: 0.01
+  conjunct_scaling_power: 0.5
+  separation_scaling_power: null
+  eligible_scene_mean: true
+  supcon_weight: 0.0
+  supcon_temperature: 0.2
+training_args:
+  output_dir: results
+  per_device_train_batch_size: 256
+  gradient_accumulation_steps: 4
+  per_device_eval_batch_size: 128
+  learning_rate: 0.001
+  weight_decay: 0.0
+  num_train_epochs: 10
+  lr_scheduler_type: cosine
+  warmup_ratio: 0.01
+  logging_steps: 100
+  eval_steps: 5000
+  save_steps: 5000
+  save_total_limit: 3
+  dataloader_num_workers: 8
+  dataloader_persistent_workers: true
+  fp16: false
+  bf16: true
+  seed: 42
+  metric_for_best_model: loss
+  load_best_model_at_end: true
+  resume_from_checkpoint: null
+  report_to: []
+  run_name: null
+  push_to_hub: false
+  hub_model_id: null
+  hub_private_repo: false
+  hub_strategy: every_save

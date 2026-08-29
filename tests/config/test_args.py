@@ -127,6 +127,14 @@ def test_top_level_args_only_composes_argument_groups() -> None:
     }
 
 
+def test_molag_finetune_experiment_matches_defaults() -> None:
+    args = ArgsParser(Args).parse(
+        ["--config", "experiments/molag_finetune.yaml"]
+    )
+
+    assert args.model_copy(update={"config": None}) == Args()
+
+
 @pytest.mark.parametrize(
     ("model_args", "field"),
     [
