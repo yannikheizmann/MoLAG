@@ -1,6 +1,9 @@
 import math
 
 import numpy as np
+from torch_geometric.data import Batch
+
+from molag.model.gnn.blocks import upper_tri_mask
 
 from molag.evaluation._assessment import PartitionAssessment
 
@@ -25,9 +28,43 @@ class PartitionMetrics(MetricsBase):
 
     def update(self, **values) -> None:
         logits = np.asarray(values["logits"], dtype=np.float32).reshape(-1)
-        assessment = PartitionAssessment.from_graph(
+        inputs = values.get("inputs")
+        if inputs is not None:
+            self._update_batch(logits, inputs)
+            return
+        self._update_scene(
+            logits=logits,
             tracker_labels=values["tracker_labels"],
             edge_index=values["edge_index"],
+        )
+
+    def _update_batch(self, logits: np.ndarray, inputs) -> None:
+        data: Batch = inputs["data"]
+        tracker_labels = inputs["tracker_labels"].detach().cpu().numpy()
+        pair_edges = data.edge_index[:, upper_tri_mask(data.edge_index)].cpu().numpy()
+        batch = data.batch.detach().cpu().numpy()
+        pointers = data.ptr.detach().cpu().numpy()
+        if pair_edges.shape[1] != logits.size:
+            raise ValueError("logits must match the unordered graph edges")
+
+        for scene in range(data.num_graphs):
+            start, stop = int(pointers[scene]), int(pointers[scene + 1])
+            edge_mask = batch[pair_edges[0]] == scene
+            self._update_scene(
+                logits=logits[edge_mask],
+                tracker_labels=tracker_labels[start:stop],
+                edge_index=pair_edges[:, edge_mask] - start,
+            )
+
+    def _update_scene(
+        self,
+        logits: np.ndarray,
+        tracker_labels,
+        edge_index,
+    ) -> None:
+        assessment = PartitionAssessment.from_graph(
+            tracker_labels=tracker_labels,
+            edge_index=edge_index,
             positive_edges=logits >= self._logit_threshold,
         )
         self._scenes += 1

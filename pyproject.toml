@@ -21,6 +21,7 @@ dependencies = [
 ]
 
 [project.scripts]
+evaluate = "molag.main:Main.evaluate"
 finetune = "molag.main:Main.finetune"
 
 [project.optional-dependencies]
