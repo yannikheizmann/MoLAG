@@ -58,6 +58,43 @@ def test_forward_supports_gradient_computation() -> None:
     assert all(parameter.grad is not None for parameter in model.parameters())
 
 
+def test_training_forward_returns_structured_loss() -> None:
+    model = small_model()
+    batch = sample_batch()
+
+    output = model(
+        data=batch["data"],
+        edge_labels=batch["edge_labels"],
+        tracker_labels=batch["tracker_labels"],
+    )
+    output["loss"].backward()
+
+    assert output["loss"].ndim == 0
+    assert torch.isfinite(output["loss"])
+    assert any(parameter.grad is not None for parameter in model.parameters())
+
+
+def test_labels_alias_is_supported() -> None:
+    model = small_model()
+    batch = sample_batch()
+
+    output = model(
+        data=batch["data"],
+        labels=batch["labels"],
+        tracker_labels=batch["tracker_labels"],
+    )
+
+    assert output["loss"] is not None
+
+
+def test_affinity_targets_require_tracker_labels() -> None:
+    model = small_model()
+    batch = sample_batch()
+
+    with pytest.raises(ValueError, match="tracker_labels"):
+        model(data=batch["data"], edge_labels=batch["edge_labels"])
+
+
 def test_missing_edge_attributes_are_rejected() -> None:
     model = small_model()
     graph = Data(

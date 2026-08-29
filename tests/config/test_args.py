@@ -4,7 +4,7 @@ import pytest
 import yaml
 from pydantic import ValidationError
 
-from molag.config import Args, ModelArgs, TrainingArgs
+from molag.config import Args, LossArgs, ModelArgs, TrainingArgs
 from molag.utils.argparsing import ArgsParser
 
 
@@ -28,14 +28,14 @@ def test_molag_defaults() -> None:
     ]
     assert args.model_args.message_alignment == 8
     assert args.model_args.edge_head_dims == [128]
-    assert args.model_args.separation_weight == 0.46
-    assert args.model_args.aggregation_beta == 1.0
-    assert args.model_args.delta_nontree == 3.0
-    assert args.model_args.eps_spur == 0.01
-    assert args.model_args.conjunct_scaling_power == 0.5
-    assert args.model_args.separation_scaling_power is None
-    assert args.model_args.eligible_scene_mean is True
-    assert args.model_args.supcon_weight == 0.0
+    assert args.loss_args.separation_weight == 0.46
+    assert args.loss_args.aggregation_beta == 1.0
+    assert args.loss_args.delta_nontree == 3.0
+    assert args.loss_args.eps_spur == 0.01
+    assert args.loss_args.conjunct_scaling_power == 0.5
+    assert args.loss_args.separation_scaling_power is None
+    assert args.loss_args.eligible_scene_mean is True
+    assert args.loss_args.supcon_weight == 0.0
     assert args.training_args.per_device_train_batch_size == 256
     assert args.training_args.gradient_accumulation_steps == 4
     assert args.training_args.learning_rate == 1e-3
@@ -53,6 +53,7 @@ def test_nested_cli_syntax() -> None:
             "train_size=1000",
             "--model_args",
             "hidden_dims=[32,64]",
+            "--loss_args",
             "separation_weight=0.7",
             "--training_args",
             "learning_rate=0.0001",
@@ -62,7 +63,7 @@ def test_nested_cli_syntax() -> None:
 
     assert args.dataset_args.train_size == 1_000
     assert args.model_args.hidden_dims == [32, 64]
-    assert args.model_args.separation_weight == 0.7
+    assert args.loss_args.separation_weight == 0.7
     assert args.training_args.learning_rate == 1e-4
     assert args.training_args.bf16 is False
 
@@ -103,6 +104,7 @@ def test_top_level_args_only_composes_argument_groups() -> None:
         "config",
         "dataset_args",
         "model_args",
+        "loss_args",
         "training_args",
     }
 
@@ -119,8 +121,9 @@ def test_top_level_args_only_composes_argument_groups() -> None:
 def test_invalid_model_configuration_is_rejected(
     model_args: dict, field: str
 ) -> None:
+    args_type = ModelArgs if "hidden_dims" in model_args else LossArgs
     with pytest.raises(ValidationError) as error:
-        ModelArgs.model_validate(model_args)
+        args_type.model_validate(model_args)
 
     assert field in str(error.value)
 

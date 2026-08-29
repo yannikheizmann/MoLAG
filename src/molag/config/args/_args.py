@@ -7,6 +7,7 @@ from pydantic import Field
 from molag.utils.argparsing import PydanticArgsBase
 
 from ._dataset import DatasetArgs
+from ._loss import LossArgs
 from ._model import ModelArgs
 from ._training import TrainingArgs
 
@@ -24,7 +25,11 @@ class Args(PydanticArgsBase):
     )
     model_args: ModelArgs = Field(
         default_factory=ModelArgs,
-        description="MoLAG architecture and scaled-conjunction loss arguments.",
+        description="MoLAG architecture arguments.",
+    )
+    loss_args: LossArgs = Field(
+        default_factory=LossArgs,
+        description="Scaled-conjunction affinity-loss arguments.",
     )
     training_args: TrainingArgs = Field(
         default_factory=TrainingArgs,
