@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from pydantic import Field, PositiveInt
+from pydantic import Field, PositiveInt, model_validator
 
 from molag.utils.argparsing import AdditionalArgsBase
 
@@ -35,3 +35,41 @@ class EvalDatasetGenerationArgs(AdditionalArgsBase):
         default="",
         description="Optional notes stored with the dataset.",
     )
+    samples_per_tracker_count: PositiveInt | None = Field(
+        default=None,
+        description=(
+            "Scenes retained for every tracker-count stratum. When omitted, "
+            "generate one unstratified dataset of the configured size."
+        ),
+    )
+    min_trackers: PositiveInt = Field(
+        default=1,
+        description="Smallest visible tracker count in a stratified dataset.",
+    )
+    max_trackers: PositiveInt = Field(
+        default=10,
+        description="Largest visible tracker count in a stratified dataset.",
+    )
+    max_attempts_per_tracker_count: PositiveInt | None = Field(
+        default=None,
+        description=(
+            "Maximum candidate scenes considered for each stratum. The default "
+            "is 100 times samples_per_tracker_count."
+        ),
+    )
+
+    @model_validator(mode="after")
+    def validate_stratification(self) -> EvalDatasetGenerationArgs:
+        if self.max_trackers < self.min_trackers:
+            raise ValueError("max_trackers must not be below min_trackers")
+        if (
+            self.samples_per_tracker_count is not None
+            and self.max_attempts_per_tracker_count is not None
+            and self.max_attempts_per_tracker_count
+            < self.samples_per_tracker_count
+        ):
+            raise ValueError(
+                "max_attempts_per_tracker_count must be at least "
+                "samples_per_tracker_count"
+            )
+        return self

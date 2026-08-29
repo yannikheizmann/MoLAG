@@ -52,6 +52,25 @@ def test_run_uses_generation_argument_schema(monkeypatch, tmp_path: Path) -> Non
     assert captured[0].seed == 123
 
 
+def test_generate_stratified_eval_dataset(tmp_path: Path) -> None:
+    output = tmp_path / "stratified.yaml"
+    generated = Main._generate_eval_dataset(
+        EvalDatasetGenerationArgs(
+            name="stratified",
+            dataset_profile=PROFILE,
+            samples_per_tracker_count=1,
+            min_trackers=1,
+            max_trackers=2,
+            seed=200,
+            output=output,
+        )
+    )
+
+    assert generated.size == 2
+    assert len(generated.candidate_seed_ranges) == 2
+    assert EvalDataset.from_yaml(output) == generated
+
+
 def test_generate_entrypoint_routes_through_run(monkeypatch) -> None:
     modes: list[str] = []
     monkeypatch.setattr(Main, "run", lambda mode: modes.append(mode))

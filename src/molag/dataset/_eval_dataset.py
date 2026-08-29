@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 import logging
 from pathlib import Path
+import random
 
 import numpy as np
 import torch
@@ -103,6 +104,96 @@ class EvalDataset(BaseModel, Dataset):
             seed=seed,
             created_at=datetime.now(timezone.utc).isoformat(),
             candidate_seed_ranges=[[seed, seed + size - 1]],
+            samples=samples,
+        )
+
+    @classmethod
+    def generate_stratified(
+        cls,
+        name: str,
+        profile_path: str | Path,
+        samples_per_tracker_count: int,
+        min_trackers: int,
+        max_trackers: int,
+        seed: int,
+        max_attempts_per_tracker_count: int | None = None,
+        description: str = "",
+    ) -> EvalDataset:
+        """Generate equal-sized strata by visible tracker count."""
+        if samples_per_tracker_count < 1:
+            raise ValueError("samples_per_tracker_count must be positive")
+        if min_trackers < 1:
+            raise ValueError("min_trackers must be positive")
+        if max_trackers < min_trackers:
+            raise ValueError("max_trackers must not be below min_trackers")
+
+        attempts = (
+            max_attempts_per_tracker_count
+            if max_attempts_per_tracker_count is not None
+            else 100 * samples_per_tracker_count
+        )
+        if attempts < samples_per_tracker_count:
+            raise ValueError(
+                "max_attempts_per_tracker_count must be at least "
+                "samples_per_tracker_count"
+            )
+
+        profile_source = Path(profile_path)
+        profile = DatasetConfig.from_yaml(profile_source)
+        samples: list[EvalSample] = []
+        candidate_seed_ranges: list[list[int]] = []
+
+        for offset, tracker_count in enumerate(
+            range(min_trackers, max_trackers + 1)
+        ):
+            stratum_seed = seed + offset * attempts
+            config = profile.model_copy(
+                update={
+                    "size": attempts,
+                    "seed": stratum_seed,
+                    "num_trackers": tracker_count,
+                }
+            )
+            generated = TrackingDataset.from_config(config)
+            accepted = 0
+            for index in range(attempts):
+                item = generated[index]
+                tracker_labels = item["y"][:, 0]
+                visible_trackers = int(
+                    tracker_labels[tracker_labels >= 0].unique().numel()
+                )
+                if visible_trackers != tracker_count:
+                    continue
+                samples.append(EvalSample.from_tensors(item["x"], item["y"]))
+                accepted += 1
+                if accepted == samples_per_tracker_count:
+                    break
+
+            if accepted != samples_per_tracker_count:
+                raise RuntimeError(
+                    f"accepted only {accepted} of {samples_per_tracker_count} "
+                    f"scenes with {tracker_count} visible trackers after "
+                    f"{attempts} candidates"
+                )
+            candidate_seed_ranges.append(
+                [stratum_seed, stratum_seed + index]
+            )
+            LOGGER.info(
+                "Generated %d scenes with %d visible trackers from %d candidates.",
+                accepted,
+                tracker_count,
+                index + 1,
+            )
+
+        random.Random(seed).shuffle(samples)
+        return cls(
+            name=name,
+            description=description,
+            profile=str(profile_source),
+            size=len(samples),
+            seed=seed,
+            created_at=datetime.now(timezone.utc).isoformat(),
+            candidate_seed_ranges=candidate_seed_ranges,
             samples=samples,
         )
 

@@ -154,13 +154,27 @@ class Main:
         args: EvalDatasetGenerationArgs,
     ) -> EvalDataset:
         """Materialize and save a frozen evaluation dataset."""
-        dataset = EvalDataset.generate(
-            name=args.name,
-            profile_path=args.dataset_profile,
-            size=args.size,
-            seed=args.seed,
-            description=args.description,
-        )
+        if args.samples_per_tracker_count is None:
+            dataset = EvalDataset.generate(
+                name=args.name,
+                profile_path=args.dataset_profile,
+                size=args.size,
+                seed=args.seed,
+                description=args.description,
+            )
+        else:
+            dataset = EvalDataset.generate_stratified(
+                name=args.name,
+                profile_path=args.dataset_profile,
+                samples_per_tracker_count=args.samples_per_tracker_count,
+                min_trackers=args.min_trackers,
+                max_trackers=args.max_trackers,
+                seed=args.seed,
+                max_attempts_per_tracker_count=(
+                    args.max_attempts_per_tracker_count
+                ),
+                description=args.description,
+            )
         dataset.to_yaml(args.output)
         return dataset
 

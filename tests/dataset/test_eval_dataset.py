@@ -31,6 +31,43 @@ def test_different_seeds_generate_different_scenes() -> None:
     assert first.samples != second.samples
 
 
+def test_stratified_generation_has_equal_visible_tracker_counts() -> None:
+    dataset = EvalDataset.generate_stratified(
+        name="stratified",
+        profile_path=PROFILE,
+        samples_per_tracker_count=2,
+        min_trackers=1,
+        max_trackers=3,
+        seed=100,
+    )
+
+    counts = [
+        int(sample["y"][:, 0][sample["y"][:, 0] >= 0].unique().numel())
+        for sample in (dataset[index] for index in range(len(dataset)))
+    ]
+    assert sorted(counts) == [1, 1, 2, 2, 3, 3]
+    assert dataset.size == 6
+    assert len(dataset.candidate_seed_ranges) == 3
+    assert dataset.candidate_seed_ranges[0][1] < dataset.candidate_seed_ranges[1][0]
+    assert dataset.candidate_seed_ranges[1][1] < dataset.candidate_seed_ranges[2][0]
+
+
+def test_stratified_generation_is_deterministic() -> None:
+    kwargs = {
+        "profile_path": PROFILE,
+        "samples_per_tracker_count": 2,
+        "min_trackers": 1,
+        "max_trackers": 2,
+        "seed": 100,
+    }
+
+    first = EvalDataset.generate_stratified(name="first", **kwargs)
+    second = EvalDataset.generate_stratified(name="second", **kwargs)
+
+    assert first.samples == second.samples
+    assert first.candidate_seed_ranges == second.candidate_seed_ranges
+
+
 def test_generation_records_metadata(frozen_dataset: EvalDataset) -> None:
     assert frozen_dataset.name == "frozen"
     assert frozen_dataset.profile == str(PROFILE)
