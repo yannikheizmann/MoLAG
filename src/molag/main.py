@@ -6,7 +6,7 @@ import logging
 from pathlib import Path
 from typing import Literal
 
-from molag.config import Args, EvaluationArgs
+from molag.config import Args, EvalDatasetGenerationArgs, EvaluationArgs
 from molag.dataset import (
     DatasetConfig,
     EvalDataset,
@@ -27,7 +27,7 @@ from molag.utils.registry import Registry
 
 LOGGER = logging.getLogger(__name__)
 
-Mode = Literal["finetune", "evaluate"]
+Mode = Literal["finetune", "evaluate", "generate_eval_dataset"]
 
 
 class Main:
@@ -37,14 +37,17 @@ class Main:
     def run(mode: Mode, argv: Sequence[str] | None = None) -> None:
         """Set up a command and route it to the selected workflow."""
         setup_logging()
+        args = ArgsParser(Args).parse(argv)
         try:
             match mode:
                 case "finetune":
-                    args = ArgsParser(Args, prog=mode).parse(argv)
                     Main._finetune(args)
                 case "evaluate":
-                    args = ArgsParser(EvaluationArgs, prog=mode).parse(argv)
-                    Main._evaluate(args)
+                    Main._evaluate(args.evaluation_args)
+                case "generate_eval_dataset":
+                    Main._generate_eval_dataset(
+                        args.eval_dataset_generation_args
+                    )
         except Exception:
             LOGGER.exception("The %s workflow failed.", mode)
             raise
@@ -58,6 +61,11 @@ class Main:
     def evaluate() -> None:
         """Run the evaluation entrypoint."""
         Main.run("evaluate")
+
+    @staticmethod
+    def generate_eval_dataset() -> None:
+        """Run the frozen evaluation-dataset generation entrypoint."""
+        Main.run("generate_eval_dataset")
 
     @staticmethod
     def _finetune(args: Args) -> dict[str, float]:
@@ -127,3 +135,18 @@ class Main:
             "metrics": metrics,
         }
         output.write_text(json.dumps(payload, indent=2) + "\n")
+
+    @staticmethod
+    def _generate_eval_dataset(
+        args: EvalDatasetGenerationArgs,
+    ) -> EvalDataset:
+        """Materialize and save a frozen evaluation dataset."""
+        dataset = EvalDataset.generate(
+            name=args.name,
+            profile_path=args.dataset_profile,
+            size=args.size,
+            seed=args.seed,
+            description=args.description,
+        )
+        dataset.to_yaml(args.output)
+        return dataset

@@ -2,6 +2,7 @@
 
 from ._args import Args
 from ._dataset import DatasetArgs
+from ._eval_dataset import EvalDatasetGenerationArgs
 from ._evaluation import EvaluationArgs
 from ._loss import LossArgs
 from ._model import ModelArgs
@@ -10,6 +11,7 @@ from ._training import TrainingArgs
 __all__ = [
     "Args",
     "DatasetArgs",
+    "EvalDatasetGenerationArgs",
     "EvaluationArgs",
     "LossArgs",
     "ModelArgs",

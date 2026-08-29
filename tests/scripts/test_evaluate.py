@@ -59,12 +59,10 @@ def test_run_uses_evaluation_argument_schema(monkeypatch, tmp_path: Path) -> Non
     Main.run(
         "evaluate",
         [
-            "--run_directory",
-            str(tmp_path / "run"),
-            "--dataset",
-            str(tmp_path / "dataset.yaml"),
-            "--batch_size",
-            "16",
+            "--evaluation_args",
+            f"run_directory={tmp_path / 'run'}",
+            f"dataset={tmp_path / 'dataset.yaml'}",
+            "batch_size=16",
         ],
     )
 

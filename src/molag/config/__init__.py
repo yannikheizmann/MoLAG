@@ -9,11 +9,20 @@ from ._constants import (
     TRIANGULAR_TRACKER_CANDIDATE_COORDINATES,
     TRIANGULAR_TRACKER_SIDE_LENGTH_MM,
 )
-from .args import Args, DatasetArgs, EvaluationArgs, LossArgs, ModelArgs, TrainingArgs
+from .args import (
+    Args,
+    DatasetArgs,
+    EvalDatasetGenerationArgs,
+    EvaluationArgs,
+    LossArgs,
+    ModelArgs,
+    TrainingArgs,
+)
 
 __all__ = [
     "Args",
     "DatasetArgs",
+    "EvalDatasetGenerationArgs",
     "EvaluationArgs",
     "LossArgs",
     "ModelArgs",

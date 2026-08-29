@@ -85,7 +85,6 @@ def test_help_lists_configuration_groups(capsys) -> None:
         assert error.code == 0
 
     help_text = capsys.readouterr().out
-    assert "usage: finetune" in help_text
     assert "--config" in help_text
     assert "--dataset_args" in help_text
     assert "--training_args" in help_text

@@ -5,20 +5,18 @@ from typing import Literal
 
 from pydantic import Field, PositiveInt
 
-from molag.utils.argparsing import PydanticArgsBase
+from molag.utils.argparsing import AdditionalArgsBase
 
 
-class EvaluationArgs(PydanticArgsBase):
+class EvaluationArgs(AdditionalArgsBase):
     """Configuration for evaluating a finetuned MoLAG checkpoint."""
 
-    config: Path | None = Field(
-        default=None,
-        description="YAML file containing evaluation argument overrides.",
-    )
     run_directory: Path = Field(
+        default=Path("results"),
         description="Finetuning output containing config.yaml and model weights.",
     )
     dataset: Path = Field(
+        default=Path("evaluation/evaluation.yaml"),
         description="Frozen EvalDataset YAML file.",
     )
     output: Path = Field(

@@ -7,6 +7,8 @@ from pydantic import Field
 from molag.utils.argparsing import PydanticArgsBase
 
 from ._dataset import DatasetArgs
+from ._eval_dataset import EvalDatasetGenerationArgs
+from ._evaluation import EvaluationArgs
 from ._loss import LossArgs
 from ._model import ModelArgs
 from ._training import TrainingArgs
@@ -34,4 +36,12 @@ class Args(PydanticArgsBase):
     training_args: TrainingArgs = Field(
         default_factory=TrainingArgs,
         description="Optimisation, checkpointing, and data-loading arguments.",
+    )
+    evaluation_args: EvaluationArgs = Field(
+        default_factory=EvaluationArgs,
+        description="Frozen-dataset evaluation arguments.",
+    )
+    eval_dataset_generation_args: EvalDatasetGenerationArgs = Field(
+        default_factory=EvalDatasetGenerationArgs,
+        description="Frozen evaluation-dataset generation arguments.",
     )

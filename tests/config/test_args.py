@@ -121,6 +121,8 @@ def test_top_level_args_only_composes_argument_groups() -> None:
         "model_args",
         "loss_args",
         "training_args",
+        "evaluation_args",
+        "eval_dataset_generation_args",
     }
 
 

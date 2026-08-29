@@ -33,14 +33,8 @@ class ArgsParser:
         --training_args learning_rate=0.0001 num_train_epochs=5
     """
 
-    def __init__(
-        self,
-        args_type: type[PydanticArgsBase],
-        *,
-        prog: str | None = None,
-    ) -> None:
+    def __init__(self, args_type: type[PydanticArgsBase]) -> None:
         self._args_type = args_type
-        self._prog = prog
 
     def parse(self, argv: Sequence[str] | None = None) -> PydanticArgsBase:
         namespace = self._build_parser().parse_args(argv)
@@ -98,7 +92,7 @@ class ArgsParser:
         return defaults
 
     def _build_parser(self) -> argparse.ArgumentParser:
-        parser = argparse.ArgumentParser(prog=self._prog)
+        parser = argparse.ArgumentParser()
         if "config" not in self._args_type.model_fields:
             parser.add_argument(
                 "--config",
