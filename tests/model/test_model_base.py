@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import pytest
 import torch
 from torch import nn
 
@@ -17,9 +18,10 @@ def test_model_implementation_is_registered() -> None:
     assert Registry.get("ModelBase", "Example") is ExampleModel
 
 
-def test_local_checkpoint_round_trip(tmp_path: Path) -> None:
+@pytest.mark.parametrize("suffix", [".pt", ".safetensors"])
+def test_local_checkpoint_round_trip(tmp_path: Path, suffix: str) -> None:
     source = ExampleModel()
-    checkpoint = tmp_path / "nested" / "model.pt"
+    checkpoint = tmp_path / "nested" / f"model{suffix}"
     source.save_local(checkpoint)
 
     restored = ExampleModel()
