@@ -7,7 +7,6 @@ from pydantic import Field, NonNegativeFloat, NonNegativeInt, PositiveFloat, Pos
 
 from molag.utils.argparsing import AdditionalArgsBase
 
-
 class TrainingArgs(AdditionalArgsBase):
     """MoLAG training configuration."""
 
@@ -97,7 +96,37 @@ class TrainingArgs(AdditionalArgsBase):
         default=None,
         description="Checkpoint directory from which training should resume.",
     )
+    report_to: list[Literal["wandb"]] = Field(
+        default_factory=list,
+        description="Training integrations receiving metrics.",
+    )
+    run_name: str | None = Field(
+        default=None,
+        description="Optional run name forwarded to reporting integrations.",
+    )
+    push_to_hub: bool = Field(
+        default=False,
+        description="Push the model and configured checkpoints to the Hub.",
+    )
+    hub_model_id: str | None = Field(
+        default=None,
+        description="Target Hugging Face repository in namespace/name form.",
+    )
+    hub_private_repo: bool = Field(
+        default=False,
+        description="Create a private repository when it does not exist.",
+    )
+    hub_strategy: Literal[
+        "end", "every_save", "checkpoint", "all_checkpoints"
+    ] = Field(
+        default="every_save",
+        description="Hugging Face Trainer checkpoint upload strategy.",
+    )
 
     def model_post_init(self, __context: object) -> None:
         if self.fp16 and self.bf16:
             raise ValueError("fp16 and bf16 cannot both be enabled")
+        if self.push_to_hub and not self.hub_model_id:
+            raise ValueError(
+                "hub_model_id is required when push_to_hub is enabled"
+            )

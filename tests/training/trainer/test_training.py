@@ -1,9 +1,15 @@
 from pathlib import Path
 
 from molag.config import LossArgs, ModelArgs, TrainingArgs
-from molag.dataset import DatasetConfig, PoseConfig, TrackingDataset
+from molag.dataset import (
+    DatasetConfig,
+    PoseConfig,
+    PyGTrackingAffinityCollator,
+    TrackingDataset,
+)
+from molag.evaluation import AffinityMetrics
 from molag.model import MoLAGModel
-from molag.training.trainer import HuggingFaceAffinityTrainer
+from molag.training.trainer import Trainer
 
 
 def test_tiny_training_run(tmp_path: Path) -> None:
@@ -39,7 +45,14 @@ def test_tiny_training_run(tmp_path: Path) -> None:
         load_best_model_at_end=False,
         bf16=False,
     )
-    trainer = HuggingFaceAffinityTrainer(model, dataset, dataset, args)
+    trainer = Trainer(
+        model=model,
+        train_dataset=dataset,
+        eval_dataset=dataset,
+        training_args=args,
+        data_collator=PyGTrackingAffinityCollator(),
+        metrics=AffinityMetrics(),
+    )
 
     metrics = trainer.train()
 

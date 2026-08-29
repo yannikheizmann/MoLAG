@@ -9,13 +9,18 @@ description = "Monocular LED assignment with a graph neural network"
 requires-python = ">=3.11"
 dependencies = [
     "accelerate>=0.26",
+    "huggingface-hub>=0.34",
     "numpy>=2.0",
     "pydantic>=2.12",
     "pyyaml>=6.0",
     "torch>=2.8",
     "torch-geometric>=2.7",
     "transformers>=4.57.1,<5",
+    "wandb>=0.23",
 ]
+
+[project.scripts]
+finetune = "molag.main:Main.finetune"
 
 [project.optional-dependencies]
 dev = [

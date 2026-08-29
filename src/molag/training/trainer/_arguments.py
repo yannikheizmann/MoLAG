@@ -37,5 +37,10 @@ class HuggingFaceTrainingAdapter:
             load_best_model_at_end=args.load_best_model_at_end,
             remove_unused_columns=False,
             label_names=["edge_labels", "tracker_labels"],
-            report_to="none",
+            report_to=args.report_to or "none",
+            run_name=args.run_name,
+            push_to_hub=args.push_to_hub,
+            hub_model_id=args.hub_model_id,
+            hub_private_repo=args.hub_private_repo,
+            hub_strategy=args.hub_strategy,
         )

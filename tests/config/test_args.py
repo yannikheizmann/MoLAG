@@ -44,6 +44,13 @@ def test_molag_defaults() -> None:
     assert args.training_args.warmup_ratio == 0.01
     assert args.training_args.fp16 is False
     assert args.training_args.bf16 is True
+    assert args.training_args.report_to == []
+    assert args.training_args.push_to_hub is False
+
+
+def test_enabled_hub_requires_repository() -> None:
+    with pytest.raises(ValueError, match="hub_model_id is required"):
+        TrainingArgs(push_to_hub=True)
 
 
 def test_nested_cli_syntax() -> None:
@@ -58,6 +65,10 @@ def test_nested_cli_syntax() -> None:
             "--training_args",
             "learning_rate=0.0001",
             "bf16=False",
+            "report_to=['wandb']",
+            "run_name=paper-run",
+            "push_to_hub=True",
+            "hub_model_id=example/molag",
         ]
     )
 
@@ -66,6 +77,10 @@ def test_nested_cli_syntax() -> None:
     assert args.loss_args.separation_weight == 0.7
     assert args.training_args.learning_rate == 1e-4
     assert args.training_args.bf16 is False
+    assert args.training_args.report_to == ["wandb"]
+    assert args.training_args.run_name == "paper-run"
+    assert args.training_args.push_to_hub is True
+    assert args.training_args.hub_model_id == "example/molag"
 
 
 def test_dataset_yaml_values_can_be_overridden_from_its_cli_group(
