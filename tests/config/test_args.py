@@ -123,6 +123,7 @@ def test_top_level_args_only_composes_argument_groups() -> None:
         "training_args",
         "evaluation_args",
         "eval_dataset_generation_args",
+        "calibration_args",
     }
 
 

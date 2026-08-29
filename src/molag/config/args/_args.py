@@ -6,6 +6,7 @@ from pydantic import Field
 
 from molag.utils.argparsing import PydanticArgsBase
 
+from ._calibration import CalibrationArgs
 from ._dataset import DatasetArgs
 from ._eval_dataset import EvalDatasetGenerationArgs
 from ._evaluation import EvaluationArgs
@@ -44,4 +45,8 @@ class Args(PydanticArgsBase):
     eval_dataset_generation_args: EvalDatasetGenerationArgs = Field(
         default_factory=EvalDatasetGenerationArgs,
         description="Frozen evaluation-dataset generation arguments.",
+    )
+    calibration_args: CalibrationArgs = Field(
+        default_factory=CalibrationArgs,
+        description="Affinity-threshold calibration arguments.",
     )

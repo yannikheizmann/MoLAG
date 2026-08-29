@@ -21,6 +21,7 @@ dependencies = [
 ]
 
 [project.scripts]
+calibrate = "molag.main:Main.calibrate"
 evaluate = "molag.main:Main.evaluate"
 finetune = "molag.main:Main.finetune"
 generate_eval_dataset = "molag.main:Main.generate_eval_dataset"

@@ -6,7 +6,12 @@ import logging
 from pathlib import Path
 from typing import Literal
 
-from molag.config import Args, EvalDatasetGenerationArgs, EvaluationArgs
+from molag.config import (
+    Args,
+    CalibrationArgs,
+    EvalDatasetGenerationArgs,
+    EvaluationArgs,
+)
 from molag.dataset import (
     DatasetConfig,
     EvalDataset,
@@ -18,6 +23,7 @@ from molag.evaluation import (
     CombinedMetrics,
     Evaluator,
     ModelLoader,
+    ThresholdCalibrator,
 )
 from molag.model import MoLAGModel
 from molag.training.trainer import Trainer
@@ -27,7 +33,7 @@ from molag.utils.registry import Registry
 
 LOGGER = logging.getLogger(__name__)
 
-Mode = Literal["finetune", "evaluate", "generate_eval_dataset"]
+Mode = Literal["finetune", "evaluate", "generate_eval_dataset", "calibrate"]
 
 
 class Main:
@@ -48,6 +54,8 @@ class Main:
                     Main._generate_eval_dataset(
                         args.eval_dataset_generation_args
                     )
+                case "calibrate":
+                    Main._calibrate(args.calibration_args)
         except Exception:
             LOGGER.exception("The %s workflow failed.", mode)
             raise
@@ -66,6 +74,11 @@ class Main:
     def generate_eval_dataset() -> None:
         """Run the frozen evaluation-dataset generation entrypoint."""
         Main.run("generate_eval_dataset")
+
+    @staticmethod
+    def calibrate() -> None:
+        """Run the affinity-threshold calibration entrypoint."""
+        Main.run("calibrate")
 
     @staticmethod
     def _finetune(args: Args) -> dict[str, float]:
@@ -150,3 +163,45 @@ class Main:
         )
         dataset.to_yaml(args.output)
         return dataset
+
+    @staticmethod
+    def _calibrate(args: CalibrationArgs) -> dict:
+        """Calibrate the grouping threshold on frozen scenes."""
+        dataset = EvalDataset.from_yaml(args.dataset)
+        steps = round(
+            (args.threshold_max - args.threshold_min) / args.threshold_step
+        )
+        thresholds = [
+            round(args.threshold_min + index * args.threshold_step, 10)
+            for index in range(steps + 1)
+        ]
+        result = ThresholdCalibrator(
+            model=ModelLoader.from_run_directory(args.run_directory, args.device),
+            dataset=dataset,
+            data_collator=PyGTrackingAffinityCollator(),
+            metric_factory=lambda threshold: Registry.get(
+                "MetricsBase", args.metric
+            )(threshold=threshold),
+            objective=args.objective,
+            thresholds=thresholds,
+            batch_size=args.batch_size,
+            device=args.device,
+            dataloader_num_workers=args.dataloader_num_workers,
+        ).calibrate()
+        payload = {
+            "run_directory": str(args.run_directory),
+            "dataset": str(args.dataset),
+            "dataset_name": dataset.name,
+            "candidate_seed_ranges": dataset.candidate_seed_ranges,
+            "metric": args.metric,
+            "objective": result.objective,
+            "threshold": result.threshold,
+            "objective_value": result.objective_value,
+            "scores": [
+                {"threshold": threshold, "objective_value": score}
+                for threshold, score in result.scores.items()
+            ],
+        }
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(json.dumps(payload, indent=2) + "\n")
+        return payload
