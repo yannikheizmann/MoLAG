@@ -3,6 +3,7 @@
 from ._config import DatasetConfig, PoseConfig
 from ._collator import PyGTrackingAffinityCollator
 from ._dataset import TrackingDataset
+from ._eval_dataset import EvalDataset, EvalSample
 from .modifiers import (
     AnyModifier,
     DropoutModifier,
@@ -25,6 +26,8 @@ from .tracker import (
 __all__ = [
     "PoseConfig",
     "DatasetConfig",
+    "EvalDataset",
+    "EvalSample",
     "PyGTrackingAffinityCollator",
     "TrackingDataset",
     "Sample",
