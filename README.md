@@ -63,13 +63,30 @@ resolved configuration, model weights, calibration grid, and evaluation result:
 results/
 ├── config.yaml
 ├── model.safetensors
+├── calibration_predictions.npz
 ├── calibration.json
+├── predictions.npz
+├── samples.csv
+├── tracker_samples.csv
 └── evaluation.json
 ```
 
 Calibration records every configured metric at every threshold. The configured
 `objective` selects the operating threshold; the default is strict scene-level
 `partition_accuracy`, with ties resolved in favor of the higher threshold.
+
+Raw predictions are stored independently of the metrics. New or changed metrics can
+therefore be computed without rerunning the model or modifying the original result:
+
+```bash
+uv run --frozen recompute \
+  --config experiments/molag_evaluate.yaml \
+  --evaluation_args metrics='["Affinity", "RealAffinity", "Partition"]'
+```
+
+Recomputed artifacts are written to `results/recomputed` by default. Passing an
+explicit `threshold` skips recalibration; otherwise the threshold is selected again
+from `calibration_predictions.npz` using the configured metric and threshold grid.
 
 ### Configuration precedence
 

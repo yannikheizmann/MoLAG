@@ -35,6 +35,11 @@ dev = [
     "pytest>=8.0",
 ]
 
+[tool.hatch.build]
+exclude = [
+    "/INSTRUCTIONS.md",
+]
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/molag"]
 
