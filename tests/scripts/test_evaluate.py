@@ -76,6 +76,9 @@ def test_evaluate_calibrates_before_test_evaluation(
     tmp_path: Path,
 ) -> None:
     run_directory = tmp_path / "run"
+    run_directory.mkdir()
+    (run_directory / "config.yaml").write_text("test: provenance\n")
+    (run_directory / "model.safetensors").write_bytes(b"test checkpoint")
     calibration_dataset = EvalDataset(
         name="calibration",
         profile="profile.yaml",

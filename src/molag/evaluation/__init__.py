@@ -9,6 +9,7 @@ from ._calibrator import CalibrationResult, ThresholdCalibrator
 from ._evaluator import Evaluator
 from ._loader import ModelLoader
 from ._predictions import PredictionCache, ScenePrediction
+from ._provenance import EvaluationProvenance, FileFingerprint
 from ._result import EvaluationResult
 from .metrics import (
     AffinityMetrics,
@@ -23,6 +24,8 @@ __all__ = [
     "CombinedMetrics",
     "Evaluator",
     "EvaluationResult",
+    "EvaluationProvenance",
+    "FileFingerprint",
     "GroupingFailureMode",
     "MetricsBase",
     "ModelLoader",

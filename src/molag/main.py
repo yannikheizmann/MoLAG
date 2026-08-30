@@ -24,6 +24,7 @@ from molag.evaluation import (
     AffinityMetrics,
     CombinedMetrics,
     Evaluator,
+    EvaluationProvenance,
     EvaluationResult,
     ModelLoader,
     ThresholdCalibrator,
@@ -131,9 +132,22 @@ class Main:
             dataloader_num_workers=args.dataloader_num_workers,
         )
         predictions = evaluator.predict()
-        predictions.to_npz(args.run_directory / PREDICTION_CACHE_FILENAME)
+        prediction_path = predictions.to_npz(
+            args.run_directory / PREDICTION_CACHE_FILENAME
+        )
         result = evaluator.evaluate(predictions)
         breakdown = evaluator.breakdown()
+        provenance = EvaluationProvenance.collect(
+            run_directory=args.run_directory,
+            dataset=args.dataset,
+            predictions=prediction_path,
+            model=model,
+            calibration=(
+                args.run_directory / CALIBRATION_RESULT_FILENAME
+                if calibration is not None
+                else None
+            ),
+        )
         Main._save_evaluation_result(
             args,
             dataset,
@@ -142,6 +156,7 @@ class Main:
             breakdown,
             evaluator.sample_records(),
             evaluator.tracker_records(),
+            provenance,
             calibration is not None,
         )
         return result
@@ -155,6 +170,7 @@ class Main:
         breakdown: dict,
         samples: list[dict],
         trackers: list[dict],
+        provenance: EvaluationProvenance,
         calibrated: bool,
     ) -> None:
         output = args.run_directory / EVALUATION_RESULT_FILENAME
@@ -173,6 +189,7 @@ class Main:
             "predictions": str(
                 args.run_directory / PREDICTION_CACHE_FILENAME
             ),
+            "provenance": provenance.to_dict(),
         }
         EvaluationResult(
             metrics=metrics,

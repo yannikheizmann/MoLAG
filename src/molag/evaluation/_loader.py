@@ -26,7 +26,7 @@ class ModelLoader:
     ) -> MoLAGModel:
         run_path = Path(run_directory)
         args = cls._load_args(run_path / "config.yaml")
-        checkpoint = cls._find_checkpoint(run_path)
+        checkpoint = cls.find_checkpoint(run_path)
 
         model = MoLAGModel(args.model_args, args.loss_args)
         model.load_local(checkpoint, map_location=device)
@@ -45,7 +45,9 @@ class ModelLoader:
         return Args.model_validate(values)
 
     @classmethod
-    def _find_checkpoint(cls, run_path: Path) -> Path:
+    def find_checkpoint(cls, run_directory: str | Path) -> Path:
+        """Return the model checkpoint selected for a run directory."""
+        run_path = Path(run_directory)
         for filename in cls.CHECKPOINT_FILENAMES:
             checkpoint = run_path / filename
             if checkpoint.is_file():
