@@ -127,6 +127,26 @@ def test_evaluate_calibrates_before_test_evaluation(
     assert evaluation["calibration"] == str(run_directory / "calibration.json")
     assert evaluation["metrics"] == metrics
 
+    recomputed = Main._recompute(
+        EvaluationArgs(
+            run_directory=run_directory,
+            threshold_min=0.5,
+            threshold_max=0.7,
+            threshold_step=0.1,
+        )
+    )
+    recomputed_calibration = json.loads(
+        (run_directory / "recomputed" / "calibration.json").read_text()
+    )
+    assert recomputed_calibration["threshold"] == 0.7
+    assert recomputed_calibration["dataset_name"] == "calibration"
+    assert recomputed_calibration["source_calibration"] == str(
+        run_directory / "calibration.json"
+    )
+    assert json.loads(
+        (run_directory / "recomputed" / "evaluation.json").read_text()
+    )["metrics"] == recomputed
+
 
 def test_run_uses_evaluation_argument_schema(monkeypatch, tmp_path: Path) -> None:
     captured: list[EvaluationArgs] = []
@@ -154,3 +174,88 @@ def test_evaluate_entrypoint_routes_through_run(monkeypatch) -> None:
     Main.evaluate()
 
     assert modes == ["evaluate"]
+
+
+def test_recompute_uses_saved_predictions_without_loading_model(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    run_directory = tmp_path / "run"
+    run_directory.mkdir()
+    (run_directory / "config.yaml").write_text("test: provenance\n")
+    (run_directory / "model.safetensors").write_bytes(b"test checkpoint")
+    dataset_path = EvalDataset(
+        name="test",
+        profile="profile.yaml",
+        size=1,
+        seed=20,
+        created_at="2026-01-01T00:00:00+00:00",
+        candidate_seed_ranges=[[20, 20]],
+        samples=[
+            EvalSample(
+                x=[[0.0, 0.0], [1.0, 0.0], [0.0, 1.0]],
+                y=[[0, 0], [0, 1], [0, 2]],
+            )
+        ],
+    ).to_yaml(tmp_path / "test.yaml")
+    monkeypatch.setattr(
+        "molag.main.ModelLoader.from_run_directory",
+        lambda *args: PositiveEdgeModel(),
+    )
+    Main._evaluate(
+        EvaluationArgs(
+            run_directory=run_directory,
+            dataset=dataset_path,
+            threshold=0.5,
+        )
+    )
+    monkeypatch.setattr(
+        "molag.main.ModelLoader.from_run_directory",
+        lambda *args: (_ for _ in ()).throw(AssertionError("model was loaded")),
+    )
+
+    result = Main._recompute(
+        EvaluationArgs(
+            run_directory=run_directory,
+            threshold=0.5,
+            metrics=["Partition"],
+        )
+    )
+
+    output = json.loads(
+        (run_directory / "recomputed" / "evaluation.json").read_text()
+    )
+    assert output["metrics"] == result
+    assert "partition_accuracy" in result
+    assert "edge_accuracy" not in result
+    assert output["source_evaluation"] == str(run_directory / "evaluation.json")
+    assert output["predictions"] == str(run_directory / "predictions.npz")
+
+
+def test_recompute_entrypoint_routes_through_run(monkeypatch) -> None:
+    modes: list[str] = []
+    monkeypatch.setattr(Main, "run", lambda mode: modes.append(mode))
+
+    Main.recompute()
+
+    assert modes == ["recompute"]
+
+
+def test_run_routes_recompute_with_shared_argument_schema(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    captured: list[EvaluationArgs] = []
+    monkeypatch.setattr(Main, "_recompute", lambda args: captured.append(args))
+
+    Main.run(
+        "recompute",
+        [
+            "--evaluation_args",
+            f"run_directory={tmp_path / 'run'}",
+            "threshold=0.4",
+        ],
+    )
+
+    assert captured[0].run_directory == tmp_path / "run"
+    assert captured[0].threshold == 0.4

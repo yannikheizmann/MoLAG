@@ -30,7 +30,7 @@ from molag.evaluation import (
     ThresholdCalibrator,
 )
 from molag.model import MoLAGModel
-from molag.inference import PredictionGenerator
+from molag.inference import PredictionCache, PredictionGenerator
 from molag.training.trainer import Trainer
 from molag.utils.argparsing import ArgsParser
 from molag.utils.logging import setup_logging
@@ -38,7 +38,7 @@ from molag.utils.registry import Registry
 
 LOGGER = logging.getLogger(__name__)
 
-Mode = Literal["finetune", "evaluate", "generate_eval_dataset"]
+Mode = Literal["finetune", "evaluate", "recompute", "generate_eval_dataset"]
 
 
 class Main:
@@ -55,6 +55,8 @@ class Main:
                     Main._finetune(args)
                 case "evaluate":
                     Main._evaluate(args.evaluation_args)
+                case "recompute":
+                    Main._recompute(args.evaluation_args)
                 case "generate_eval_dataset":
                     Main._generate_eval_dataset(
                         args.eval_dataset_generation_args
@@ -72,6 +74,11 @@ class Main:
     def evaluate() -> None:
         """Run the evaluation entrypoint."""
         Main.run("evaluate")
+
+    @staticmethod
+    def recompute() -> None:
+        """Recompute evaluation metrics from saved raw predictions."""
+        Main.run("recompute")
 
     @staticmethod
     def generate_eval_dataset() -> None:
@@ -246,6 +253,89 @@ class Main:
         return dataset
 
     @staticmethod
+    def _recompute(args: EvaluationArgs) -> dict[str, float]:
+        """Recompute calibration and metrics without loading a model or dataset."""
+        output_directory = (
+            args.recomputed_directory
+            if args.recomputed_directory is not None
+            else args.run_directory / "recomputed"
+        )
+        output_directory.mkdir(parents=True, exist_ok=True)
+
+        calibration = None
+        if args.threshold is None:
+            source_calibration_path = (
+                args.run_directory / CALIBRATION_RESULT_FILENAME
+            )
+            source_calibration = (
+                json.loads(source_calibration_path.read_text())
+                if source_calibration_path.is_file()
+                else {}
+            )
+            source_calibration["source_calibration"] = (
+                str(source_calibration_path)
+                if source_calibration_path.is_file()
+                else None
+            )
+            calibration_predictions = PredictionCache.from_npz(
+                args.run_directory / CALIBRATION_PREDICTION_CACHE_FILENAME
+            )
+            calibration = Main._calibrate_predictions(
+                args,
+                calibration_predictions,
+                output_directory,
+                args.run_directory / CALIBRATION_PREDICTION_CACHE_FILENAME,
+                source_metadata=source_calibration,
+            )
+            threshold = calibration["threshold"]
+        else:
+            threshold = args.threshold
+
+        prediction_path = args.run_directory / PREDICTION_CACHE_FILENAME
+        predictions = PredictionCache.from_npz(prediction_path)
+        metrics = Main._create_metrics(args.metrics, threshold)
+        result = Evaluator.evaluate_predictions(predictions, metrics)
+        source_result_path = args.run_directory / EVALUATION_RESULT_FILENAME
+        source_metadata = (
+            json.loads(source_result_path.read_text())
+            if source_result_path.is_file()
+            else {}
+        )
+        metadata = {
+            key: source_metadata[key]
+            for key in (
+                "model_source",
+                "dataset",
+                "dataset_name",
+                "candidate_seed_ranges",
+                "provenance",
+            )
+            if key in source_metadata
+        }
+        metadata.update(
+            {
+                "run_directory": str(args.run_directory),
+                "source_evaluation": (
+                    str(source_result_path) if source_result_path.is_file() else None
+                ),
+                "predictions": str(prediction_path),
+                "calibration": (
+                    str(output_directory / CALIBRATION_RESULT_FILENAME)
+                    if calibration is not None
+                    else None
+                ),
+                "threshold": threshold,
+            }
+        )
+        EvaluationResult(
+            metrics=result,
+            breakdown=metrics.breakdown(),
+            samples=metrics.sample_records(),
+            trackers=metrics.tracker_records(),
+        ).write(output_directory / EVALUATION_RESULT_FILENAME, metadata)
+        return result
+
+    @staticmethod
     def _calibrate(args: EvaluationArgs, model) -> dict:
         """Calibrate the grouping threshold on frozen scenes."""
         dataset = EvalDataset.from_yaml(args.calibration_dataset)
@@ -260,6 +350,24 @@ class Main:
         prediction_path = predictions.to_npz(
             args.run_directory / CALIBRATION_PREDICTION_CACHE_FILENAME
         )
+        return Main._calibrate_predictions(
+            args,
+            predictions,
+            args.run_directory,
+            prediction_path,
+            dataset,
+        )
+
+    @staticmethod
+    def _calibrate_predictions(
+        args: EvaluationArgs,
+        predictions: PredictionCache,
+        output_directory: Path,
+        prediction_path: Path,
+        dataset: EvalDataset | None = None,
+        source_metadata: dict | None = None,
+    ) -> dict:
+        """Calibrate a threshold from raw cached predictions."""
         steps = round(
             (args.threshold_max - args.threshold_min) / args.threshold_step
         )
@@ -274,22 +382,40 @@ class Main:
             objective=args.objective,
             thresholds=thresholds,
         ).calibrate(predictions)
+        source_metadata = source_metadata or {}
         payload = {
             "run_directory": str(args.run_directory),
-            "dataset": str(args.calibration_dataset),
-            "dataset_name": dataset.name,
-            "candidate_seed_ranges": dataset.candidate_seed_ranges,
+            "dataset": (
+                str(args.calibration_dataset)
+                if dataset is not None
+                else source_metadata.get("dataset")
+            ),
+            "dataset_name": (
+                dataset.name
+                if dataset is not None
+                else source_metadata.get("dataset_name")
+            ),
+            "candidate_seed_ranges": (
+                dataset.candidate_seed_ranges
+                if dataset is not None
+                else source_metadata.get("candidate_seed_ranges")
+            ),
             "predictions": str(prediction_path),
             "metrics": args.metrics,
             "objective": result.objective,
             "threshold": result.threshold,
             "objective_value": result.objective_value,
+            **(
+                {"source_calibration": source_metadata["source_calibration"]}
+                if "source_calibration" in source_metadata
+                else {}
+            ),
             "results": [
                 {"threshold": threshold, "metrics": metrics}
                 for threshold, metrics in result.metrics_by_threshold.items()
             ],
         }
-        output = args.run_directory / CALIBRATION_RESULT_FILENAME
+        output = output_directory / CALIBRATION_RESULT_FILENAME
         output.parent.mkdir(parents=True, exist_ok=True)
         output.write_text(json.dumps(payload, indent=2) + "\n")
         return payload

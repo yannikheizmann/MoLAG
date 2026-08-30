@@ -16,6 +16,13 @@ class EvaluationArgs(AdditionalArgsBase):
             "is set, containing the local finetuning result."
         ),
     )
+    recomputed_directory: Path | None = Field(
+        default=None,
+        description=(
+            "Directory receiving results recomputed from cached predictions. "
+            "Defaults to <run_directory>/recomputed."
+        ),
+    )
     hub_model_id: str | None = Field(
         default=None,
         min_length=1,
