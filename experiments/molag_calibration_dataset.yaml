@@ -1,0 +1,10 @@
+eval_dataset_generation_args:
+  name: molag_calibration_1_to_10_5k_seed7000000
+  dataset_profile: src/molag/dataset/profiles/molag_standard.yaml
+  seed: 7000000
+  output: evaluation/molag_calibration_1_to_10_5k_seed7000000.yaml
+  description: Equal-sized calibration strata for one through ten visible trackers.
+  samples_per_tracker_count: 500
+  min_trackers: 1
+  max_trackers: 10
+  max_attempts_per_tracker_count: 50000

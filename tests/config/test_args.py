@@ -136,6 +136,39 @@ def test_molag_finetune_experiment_matches_defaults() -> None:
 
 
 @pytest.mark.parametrize(
+    ("config", "samples_per_count", "seed", "attempts"),
+    [
+        (
+            "experiments/molag_calibration_dataset.yaml",
+            500,
+            7_000_000,
+            50_000,
+        ),
+        (
+            "experiments/molag_test_dataset.yaml",
+            5_000,
+            10_000_000,
+            1_000_000,
+        ),
+    ],
+)
+def test_held_out_dataset_experiment(
+    config: str,
+    samples_per_count: int,
+    seed: int,
+    attempts: int,
+) -> None:
+    args = ArgsParser(Args).parse(["--config", config])
+    generation = args.eval_dataset_generation_args
+
+    assert generation.samples_per_tracker_count == samples_per_count
+    assert generation.seed == seed
+    assert generation.max_attempts_per_tracker_count == attempts
+    assert generation.min_trackers == 1
+    assert generation.max_trackers == 10
+
+
+@pytest.mark.parametrize(
     ("model_args", "field"),
     [
         ({"hidden_dims": []}, "hidden_dims"),

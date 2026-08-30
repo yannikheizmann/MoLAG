@@ -1,0 +1,10 @@
+eval_dataset_generation_args:
+  name: molag_test_1_to_10_50k_seed10000000
+  dataset_profile: src/molag/dataset/profiles/molag_standard.yaml
+  seed: 10000000
+  output: evaluation/molag_test_1_to_10_50k_seed10000000.yaml
+  description: Equal-sized test strata for one through ten visible trackers.
+  samples_per_tracker_count: 5000
+  min_trackers: 1
+  max_trackers: 10
+  max_attempts_per_tracker_count: 1000000
