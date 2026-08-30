@@ -14,6 +14,7 @@ from pydantic import (
 
 from molag.utils.argparsing import AdditionalArgsBase
 
+
 class TrainingArgs(AdditionalArgsBase):
     """MoLAG training configuration."""
 
@@ -92,7 +93,7 @@ class TrainingArgs(AdditionalArgsBase):
         description="Seed for model initialisation and training operations.",
     )
     training_metrics: list[str] = Field(
-        default_factory=lambda: ["Affinity"],
+        default_factory=lambda: ["Affinity", "Partition"],
         min_length=1,
         description="Registered streaming metrics used during training evaluation.",
     )

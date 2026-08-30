@@ -1,6 +1,7 @@
 """Static configuration shared by MoLAG components."""
 
 import math
+from pathlib import Path
 
 import numpy as np
 
@@ -12,6 +13,9 @@ CALIBRATION_RESULT_FILENAME = "calibration.json"
 CALIBRATION_PREDICTION_CACHE_FILENAME = "calibration_predictions.npz"
 EVALUATION_RESULT_FILENAME = "evaluation.json"
 PREDICTION_CACHE_FILENAME = "predictions.npz"
+DEFAULT_DATASET_PROFILE = (
+    Path(__file__).parent.parent / "dataset" / "profiles" / "molag_standard.yaml"
+)
 
 TRIANGULAR_TRACKER_SIDE_LENGTH_MM = 64.0
 

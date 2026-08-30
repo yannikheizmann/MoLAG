@@ -4,16 +4,21 @@ import pytest
 import yaml
 from pydantic import ValidationError
 
-from molag.config import Args, LossArgs, ModelArgs, TrainingArgs
+from molag.config import (
+    DEFAULT_DATASET_PROFILE,
+    Args,
+    LossArgs,
+    ModelArgs,
+    TrainingArgs,
+)
 from molag.utils.argparsing import ArgsParser
 
 
 def test_molag_defaults() -> None:
     args = Args()
 
-    assert args.dataset_args.dataset_profile == Path(
-        "src/molag/dataset/profiles/molag_standard.yaml"
-    )
+    assert args.dataset_args.dataset_profile == DEFAULT_DATASET_PROFILE
+    assert args.dataset_args.dataset_profile.is_file()
     assert args.config is None
     assert args.dataset_args.train_size == 5_000_000
     assert args.dataset_args.eval_size == 10_000
@@ -46,7 +51,7 @@ def test_molag_defaults() -> None:
     assert args.training_args.bf16 is True
     assert args.training_args.report_to == []
     assert args.training_args.push_to_hub is False
-    assert args.training_args.training_metrics == ["Affinity"]
+    assert args.training_args.training_metrics == ["Affinity", "Partition"]
     assert args.evaluation_args.hub_model_id is None
     assert args.evaluation_args.hub_revision is None
     assert args.evaluation_args.metrics == [
@@ -63,7 +68,10 @@ def test_enabled_hub_requires_repository() -> None:
 
 def test_best_model_metric_requires_its_training_metric() -> None:
     with pytest.raises(ValueError, match="requires 'Partition'"):
-        TrainingArgs(metric_for_best_model="partition_accuracy")
+        TrainingArgs(
+            training_metrics=["Affinity"],
+            metric_for_best_model="partition_accuracy",
+        )
 
     args = TrainingArgs(
         training_metrics=["Affinity", "Partition"],
@@ -150,7 +158,12 @@ def test_molag_finetune_experiment_matches_defaults() -> None:
         ["--config", "experiments/molag_finetune.yaml"]
     )
 
-    assert args.model_copy(update={"config": None}) == Args()
+    expected = Args()
+    parsed = args.model_copy(update={"config": None})
+    assert parsed.dataset_args.dataset_profile.resolve() == (
+        expected.dataset_args.dataset_profile.resolve()
+    )
+    assert parsed.model_copy(update={"dataset_args": expected.dataset_args}) == expected
 
 
 @pytest.mark.parametrize(

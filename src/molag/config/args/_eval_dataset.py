@@ -4,6 +4,7 @@ from pathlib import Path
 
 from pydantic import Field, PositiveInt, model_validator
 
+from molag.config._constants import DEFAULT_DATASET_PROFILE
 from molag.utils.argparsing import AdditionalArgsBase
 
 
@@ -16,7 +17,7 @@ class EvalDatasetGenerationArgs(AdditionalArgsBase):
         description="Human-readable identifier stored with the dataset.",
     )
     dataset_profile: Path = Field(
-        default=Path("src/molag/dataset/profiles/molag_standard.yaml"),
+        default=DEFAULT_DATASET_PROFILE,
         description="DatasetConfig YAML used to generate candidate scenes.",
     )
     size: PositiveInt = Field(
