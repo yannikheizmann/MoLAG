@@ -10,6 +10,9 @@ loss, finetuning workflow, held-out threshold calibration, evaluation, and calib
 inference API accompanying *MoLAG: Monocular LED Assignment via a Graph Neural Network
 for Multi-Tracker Surgical Navigation*.
 
+The [project documentation](https://yannikheizmann.github.io/MoLAG/) introduces the
+method, reproducible workflows, extension interfaces, output artifacts, and public API.
+
 ## Installation
 
 MoLAG requires Python 3.11 or newer. The locked development environment can be created

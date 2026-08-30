@@ -39,3 +39,14 @@ jobs:
             echo "INSTRUCTIONS.md must not be included in release artifacts"
             exit 1
           fi
+
+  documentation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          python-version: "3.13"
+      - run: uv sync --frozen --extra docs
+      - run: uv run --frozen mkdocs build --strict

@@ -1,0 +1,54 @@
+:root {
+  --molag-blue: #02053c;
+  --molag-cyan: #a6d9e7;
+  --molag-mauve: #c192be;
+  --molag-red: #f8303d;
+  --md-primary-fg-color: var(--molag-blue);
+  --md-primary-fg-color--light: var(--molag-cyan);
+  --md-primary-fg-color--dark: var(--molag-blue);
+  --md-accent-fg-color: var(--molag-mauve);
+  --md-typeset-a-color: var(--molag-blue);
+}
+
+.md-typeset h1,
+.md-typeset h2,
+.md-typeset h3 {
+  color: var(--molag-blue);
+  font-weight: 750;
+  letter-spacing: -0.025em;
+}
+
+.md-typeset h1 {
+  font-size: 2.5rem;
+}
+
+.md-typeset .md-button--primary {
+  background-color: var(--molag-blue);
+  border-color: var(--molag-blue);
+}
+
+.md-typeset .md-button:focus,
+.md-typeset .md-button:hover {
+  background-color: var(--molag-mauve);
+  border-color: var(--molag-mauve);
+  color: var(--molag-blue);
+}
+
+.md-typeset img.homepage-figure {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.homepage-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  margin: 1.5rem 0 4rem;
+}
+
+.homepage-actions .md-button {
+  margin: 0;
+}
