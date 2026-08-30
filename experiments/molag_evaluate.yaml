@@ -1,0 +1,14 @@
+evaluation_args:
+  run_directory: results
+  dataset: evaluation/molag_test_1_to_10_50k_seed10000000.yaml
+  calibration_dataset: evaluation/molag_calibration_1_to_10_5k_seed7000000.yaml
+  batch_size: 128
+  dataloader_num_workers: 0
+  device: cuda
+  metrics:
+    - Affinity
+    - Partition
+  threshold_min: 0.05
+  threshold_max: 0.95
+  threshold_step: 0.01
+  objective: partition_accuracy

@@ -123,7 +123,6 @@ def test_top_level_args_only_composes_argument_groups() -> None:
         "training_args",
         "evaluation_args",
         "eval_dataset_generation_args",
-        "calibration_args",
     }
 
 
@@ -166,6 +165,26 @@ def test_held_out_dataset_experiment(
     assert generation.max_attempts_per_tracker_count == attempts
     assert generation.min_trackers == 1
     assert generation.max_trackers == 10
+
+
+def test_evaluation_experiment_uses_calibration_artifact() -> None:
+    args = ArgsParser(Args).parse(
+        ["--config", "experiments/molag_evaluate.yaml"]
+    )
+    evaluation = args.evaluation_args
+
+    assert evaluation.dataset == Path(
+        "evaluation/molag_test_1_to_10_50k_seed10000000.yaml"
+    )
+    assert evaluation.calibration_dataset == Path(
+        "evaluation/molag_calibration_1_to_10_5k_seed7000000.yaml"
+    )
+    assert evaluation.threshold is None
+    assert evaluation.metrics == ["Affinity", "Partition"]
+    assert evaluation.threshold_min == 0.05
+    assert evaluation.threshold_max == 0.95
+    assert evaluation.threshold_step == 0.01
+    assert evaluation.objective == "partition_accuracy"
 
 
 @pytest.mark.parametrize(

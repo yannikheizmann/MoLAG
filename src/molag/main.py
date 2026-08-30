@@ -8,7 +8,8 @@ from typing import Literal
 
 from molag.config import (
     Args,
-    CalibrationArgs,
+    CALIBRATION_RESULT_FILENAME,
+    EVALUATION_RESULT_FILENAME,
     EvalDatasetGenerationArgs,
     EvaluationArgs,
 )
@@ -33,7 +34,7 @@ from molag.utils.registry import Registry
 
 LOGGER = logging.getLogger(__name__)
 
-Mode = Literal["finetune", "evaluate", "generate_eval_dataset", "calibrate"]
+Mode = Literal["finetune", "evaluate", "generate_eval_dataset"]
 
 
 class Main:
@@ -54,8 +55,6 @@ class Main:
                     Main._generate_eval_dataset(
                         args.eval_dataset_generation_args
                     )
-                case "calibrate":
-                    Main._calibrate(args.calibration_args)
         except Exception:
             LOGGER.exception("The %s workflow failed.", mode)
             raise
@@ -74,11 +73,6 @@ class Main:
     def generate_eval_dataset() -> None:
         """Run the frozen evaluation-dataset generation entrypoint."""
         Main.run("generate_eval_dataset")
-
-    @staticmethod
-    def calibrate() -> None:
-        """Run the affinity-threshold calibration entrypoint."""
-        Main.run("calibrate")
 
     @staticmethod
     def _finetune(args: Args) -> dict[str, float]:
@@ -110,16 +104,23 @@ class Main:
 
     @staticmethod
     def _evaluate(args: EvaluationArgs) -> dict[str, float]:
-        """Evaluate a finetuned model on frozen scenes."""
+        """Calibrate and evaluate a finetuned model on frozen scenes."""
+        model = ModelLoader.from_run_directory(args.run_directory, args.device)
+        calibration = None
+        if args.threshold is None:
+            calibration = Main._calibrate(args, model)
+            threshold = calibration["threshold"]
+        else:
+            threshold = args.threshold
         dataset = EvalDataset.from_yaml(args.dataset)
         metrics = CombinedMetrics(
             [
-                Registry.get("MetricsBase", name)(threshold=args.threshold)
+                Registry.get("MetricsBase", name)(threshold=threshold)
                 for name in args.metrics
             ]
         )
         evaluator = Evaluator(
-            model=ModelLoader.from_run_directory(args.run_directory, args.device),
+            model=model,
             dataset=dataset,
             data_collator=PyGTrackingAffinityCollator(),
             metrics=metrics,
@@ -128,23 +129,36 @@ class Main:
             dataloader_num_workers=args.dataloader_num_workers,
         )
         result = evaluator.evaluate()
-        Main._save_evaluation_result(args, dataset, result)
+        Main._save_evaluation_result(
+            args,
+            dataset,
+            threshold,
+            result,
+            calibration is not None,
+        )
         return result
 
     @staticmethod
     def _save_evaluation_result(
         args: EvaluationArgs,
         dataset: EvalDataset,
+        threshold: float,
         metrics: dict[str, float],
+        calibrated: bool,
     ) -> None:
-        output = Path(args.output)
+        output = args.run_directory / EVALUATION_RESULT_FILENAME
         output.parent.mkdir(parents=True, exist_ok=True)
         payload = {
             "run_directory": str(args.run_directory),
             "dataset": str(args.dataset),
             "dataset_name": dataset.name,
             "candidate_seed_ranges": dataset.candidate_seed_ranges,
-            "threshold": args.threshold,
+            "calibration": (
+                str(args.run_directory / CALIBRATION_RESULT_FILENAME)
+                if calibrated
+                else None
+            ),
+            "threshold": threshold,
             "metrics": metrics,
         }
         output.write_text(json.dumps(payload, indent=2) + "\n")
@@ -179,9 +193,9 @@ class Main:
         return dataset
 
     @staticmethod
-    def _calibrate(args: CalibrationArgs) -> dict:
+    def _calibrate(args: EvaluationArgs, model) -> dict:
         """Calibrate the grouping threshold on frozen scenes."""
-        dataset = EvalDataset.from_yaml(args.dataset)
+        dataset = EvalDataset.from_yaml(args.calibration_dataset)
         steps = round(
             (args.threshold_max - args.threshold_min) / args.threshold_step
         )
@@ -190,12 +204,15 @@ class Main:
             for index in range(steps + 1)
         ]
         result = ThresholdCalibrator(
-            model=ModelLoader.from_run_directory(args.run_directory, args.device),
+            model=model,
             dataset=dataset,
             data_collator=PyGTrackingAffinityCollator(),
-            metric_factory=lambda threshold: Registry.get(
-                "MetricsBase", args.metric
-            )(threshold=threshold),
+            metric_factory=lambda threshold: CombinedMetrics(
+                [
+                    Registry.get("MetricsBase", name)(threshold=threshold)
+                    for name in args.metrics
+                ]
+            ),
             objective=args.objective,
             thresholds=thresholds,
             batch_size=args.batch_size,
@@ -204,18 +221,19 @@ class Main:
         ).calibrate()
         payload = {
             "run_directory": str(args.run_directory),
-            "dataset": str(args.dataset),
+            "dataset": str(args.calibration_dataset),
             "dataset_name": dataset.name,
             "candidate_seed_ranges": dataset.candidate_seed_ranges,
-            "metric": args.metric,
+            "metrics": args.metrics,
             "objective": result.objective,
             "threshold": result.threshold,
             "objective_value": result.objective_value,
-            "scores": [
-                {"threshold": threshold, "objective_value": score}
-                for threshold, score in result.scores.items()
+            "results": [
+                {"threshold": threshold, "metrics": metrics}
+                for threshold, metrics in result.metrics_by_threshold.items()
             ],
         }
-        args.output.parent.mkdir(parents=True, exist_ok=True)
-        args.output.write_text(json.dumps(payload, indent=2) + "\n")
+        output = args.run_directory / CALIBRATION_RESULT_FILENAME
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(json.dumps(payload, indent=2) + "\n")
         return payload

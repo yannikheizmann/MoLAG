@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+from torch import nn
+
 from molag.config import (
     Args,
     EvaluationArgs,
@@ -8,11 +10,18 @@ from molag.config import (
     ModelArgs,
     TrainingArgs,
 )
-from molag.dataset import EvalDataset
+from molag.dataset import EvalDataset, EvalSample
 from molag.main import Main
 from molag.model import MoLAGModel
+from molag.model.gnn.blocks import upper_tri_mask
 
 PROFILE = Path("src/molag/dataset/profiles/molag_standard.yaml")
+
+
+class PositiveEdgeModel(nn.Module):
+    def forward(self, data):
+        pair_count = int(upper_tri_mask(data.edge_index).sum())
+        return {"edge_logits": data.x.new_full((pair_count,), 100.0)}
 
 
 def test_evaluate_runs_model_and_saves_results(tmp_path: Path) -> None:
@@ -33,14 +42,14 @@ def test_evaluate_runs_model_and_saves_results(tmp_path: Path) -> None:
         size=3,
         seed=100,
     ).to_yaml(tmp_path / "evaluation.yaml")
-    output = tmp_path / "results" / "metrics.json"
+    output = run_directory / "evaluation.json"
 
     metrics = Main._evaluate(
         EvaluationArgs(
             run_directory=run_directory,
             dataset=dataset_path,
-            output=output,
             batch_size=2,
+            threshold=0.5,
         )
     )
 
@@ -50,6 +59,55 @@ def test_evaluate_runs_model_and_saves_results(tmp_path: Path) -> None:
     assert saved["metrics"] == metrics
     assert saved["dataset_name"] == "evaluation"
     assert saved["candidate_seed_ranges"] == [[100, 102]]
+    assert saved["threshold"] == 0.5
+    assert saved["calibration"] is None
+
+
+def test_evaluate_calibrates_before_test_evaluation(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    run_directory = tmp_path / "run"
+    calibration_dataset = EvalDataset(
+        name="calibration",
+        profile="profile.yaml",
+        size=1,
+        seed=10,
+        created_at="2026-01-01T00:00:00+00:00",
+        candidate_seed_ranges=[[10, 10]],
+        samples=[
+            EvalSample(
+                x=[[0.0, 0.0], [1.0, 0.0], [0.0, 1.0]],
+                y=[[0, 0], [0, 1], [0, 2]],
+            )
+        ],
+    ).to_yaml(tmp_path / "calibration.yaml")
+    test_dataset = EvalDataset.from_yaml(calibration_dataset).model_copy(
+        update={"name": "test", "seed": 20, "candidate_seed_ranges": [[20, 20]]}
+    ).to_yaml(tmp_path / "test.yaml")
+    monkeypatch.setattr(
+        "molag.main.ModelLoader.from_run_directory",
+        lambda *args: PositiveEdgeModel(),
+    )
+
+    metrics = Main._evaluate(
+        EvaluationArgs(
+            run_directory=run_directory,
+            calibration_dataset=calibration_dataset,
+            dataset=test_dataset,
+            threshold_min=0.5,
+            threshold_max=0.7,
+            threshold_step=0.1,
+        )
+    )
+
+    calibration = json.loads((run_directory / "calibration.json").read_text())
+    evaluation = json.loads((run_directory / "evaluation.json").read_text())
+    assert calibration["threshold"] == 0.7
+    assert len(calibration["results"]) == 3
+    assert evaluation["threshold"] == 0.7
+    assert evaluation["calibration"] == str(run_directory / "calibration.json")
+    assert evaluation["metrics"] == metrics
 
 
 def test_run_uses_evaluation_argument_schema(monkeypatch, tmp_path: Path) -> None:

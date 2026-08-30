@@ -11,12 +11,12 @@ from .metrics import MetricsBase
 
 @dataclass(frozen=True)
 class CalibrationResult:
-    """Selected threshold and objective values across the searched grid."""
+    """Selected threshold and complete metrics across the searched grid."""
 
     threshold: float
     objective: str
     objective_value: float
-    scores: dict[float, float]
+    metrics_by_threshold: dict[float, dict[str, float]]
 
 
 class ThresholdCalibrator:
@@ -66,7 +66,7 @@ class ThresholdCalibrator:
                 for metric in self._metrics.values():
                     metric.update(**values)
 
-        scores: dict[float, float] = {}
+        metrics_by_threshold: dict[float, dict[str, float]] = {}
         for threshold, metric in self._metrics.items():
             values = metric.compute()
             if self._objective not in values:
@@ -75,11 +75,17 @@ class ThresholdCalibrator:
                     f"metric does not provide objective {self._objective!r}; "
                     f"available values: {available}"
                 )
-            scores[threshold] = values[self._objective]
-        threshold = max(scores, key=lambda candidate: (scores[candidate], candidate))
+            metrics_by_threshold[threshold] = values
+        threshold = max(
+            metrics_by_threshold,
+            key=lambda candidate: (
+                metrics_by_threshold[candidate][self._objective],
+                candidate,
+            ),
+        )
         return CalibrationResult(
             threshold=threshold,
             objective=self._objective,
-            objective_value=scores[threshold],
-            scores=scores,
+            objective_value=metrics_by_threshold[threshold][self._objective],
+            metrics_by_threshold=metrics_by_threshold,
         )
