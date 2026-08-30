@@ -1,3 +1,5 @@
+"""Provide calibrated single-scene inference for localised image points."""
+
 from __future__ import annotations
 
 import json
@@ -18,7 +20,7 @@ from ._partition import AffinityPartition
 
 @dataclass(frozen=True)
 class InferenceResult:
-    """Affinity predictions and resulting candidate tracker groups."""
+    """Pairwise affinities and their connected-component partition."""
 
     edge_index: np.ndarray
     affinities: np.ndarray
@@ -26,11 +28,12 @@ class InferenceResult:
 
     @property
     def groups(self) -> tuple[np.ndarray, ...]:
+        """Return node indices grouped into candidate trackers."""
         return self.partition.groups
 
 
 class MoLAGPredictor:
-    """Run calibrated MoLAG inference on one coordinate set."""
+    """Calibrated MoLAG inference for one coordinate set."""
 
     def __init__(
         self,
@@ -50,7 +53,7 @@ class MoLAGPredictor:
         run_directory: str | Path,
         device: str | torch.device | None = "auto",
     ) -> MoLAGPredictor:
-        """Load a model and its calibrated threshold from one run directory."""
+        """Load a model and its calibrated threshold from a run directory."""
         from molag.evaluation import ModelLoader
 
         run = Path(run_directory)
@@ -92,7 +95,11 @@ class MoLAGPredictor:
         return cls.from_run_directory(snapshot, device=device)
 
     def predict(self, coordinates: Tensor | np.ndarray) -> InferenceResult:
-        """Predict affinities and candidate groups for localised image points."""
+        """Predict affinities and candidate groups for localised image points.
+
+        Coordinates are centred and max-norm scaled exactly as in dataset generation
+        before the complete affinity graph is constructed.
+        """
         tensor = torch.as_tensor(coordinates, dtype=torch.float32)
         tensor = self._normalize_coordinates(tensor)
         labels = torch.full((tensor.shape[0], 2), -1, dtype=torch.long)

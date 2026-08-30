@@ -1,3 +1,5 @@
+"""Provide numerical geometry operations used by tracker pose sampling."""
+
 from __future__ import annotations
 
 import math
@@ -13,12 +15,14 @@ class GeometryUtils:
 
     @staticmethod
     def normalize(vector: FloatArray, epsilon: float = 1e-12) -> FloatArray:
+        """Return a unit vector, or zero when its norm is below ``epsilon``."""
         vector = np.asarray(vector, dtype=np.float64)
         norm = np.linalg.norm(vector)
         return vector / norm if norm > epsilon else np.zeros_like(vector)
 
     @staticmethod
     def rodrigues(axis: FloatArray, angle: float) -> FloatArray:
+        """Construct a rotation matrix from an axis and angle in radians."""
         x, y, z = GeometryUtils.normalize(axis)
         if np.allclose((x, y, z), 0.0):
             return np.eye(3)
@@ -34,6 +38,7 @@ class GeometryUtils:
 
     @staticmethod
     def rotate_negative_z_to(direction: FloatArray) -> FloatArray:
+        """Construct a rotation that aligns negative Z with ``direction``."""
         negative_z = np.array([0.0, 0.0, -1.0])
         target = GeometryUtils.normalize(direction)
         axis = np.cross(negative_z, target)
@@ -46,6 +51,7 @@ class GeometryUtils:
         maximum_angle: float,
         rng: np.random.Generator,
     ) -> FloatArray:
+        """Sample a tilt around an axis perpendicular to ``direction``."""
         target = GeometryUtils.normalize(direction)
         helper = np.array([rng.random(), rng.random(), 0.0])
         axis = np.cross(helper, target)
@@ -55,4 +61,3 @@ class GeometryUtils:
                 axis = np.cross(np.array([0.0, 1.0, 0.0]), target)
         angle = rng.uniform(0.0, maximum_angle)
         return GeometryUtils.rodrigues(axis, angle)
-

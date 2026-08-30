@@ -1,3 +1,5 @@
+"""Evaluate raw MoLAG predictions with composable streaming metrics."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -11,7 +13,7 @@ from .metrics import MetricsBase
 
 
 class Evaluator:
-    """Run batched model inference with modular streaming metrics."""
+    """Batched prediction and metric evaluation for a fixed dataset."""
 
     def __init__(
         self,
@@ -34,14 +36,14 @@ class Evaluator:
         )
 
     def predict(self) -> PredictionCache:
-        """Run the model once and retain raw outputs separately for every scene."""
+        """Run inference once and retain the raw output for each scene."""
         return self._generator.predict()
 
     def evaluate(
         self,
         predictions: PredictionCache | None = None,
     ) -> dict[str, float]:
-        """Compute configured metrics from new or previously cached predictions."""
+        """Compute the configured metrics from new or cached predictions."""
         cache = predictions if predictions is not None else self.predict()
         return self.evaluate_predictions(cache, self._metrics)
 
@@ -50,7 +52,11 @@ class Evaluator:
         predictions: PredictionCache,
         metrics: MetricsBase,
     ) -> dict[str, float]:
-        """Compute metrics from cached predictions without loading a model."""
+        """Compute metrics from cached predictions without loading a model.
+
+        The metric state is reset before the cache is consumed. The supplied metric
+        object retains its detailed records after this method returns.
+        """
         metrics.reset()
         for scene in predictions:
             metrics.update(

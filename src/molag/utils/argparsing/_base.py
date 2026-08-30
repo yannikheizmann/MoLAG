@@ -1,3 +1,5 @@
+"""Define strict Pydantic models and shared argument-model operations."""
+
 from __future__ import annotations
 
 import inspect
@@ -20,11 +22,11 @@ class _StrictModel(BaseModel):
 
 
 class AdditionalArgsBase(_StrictModel):
-    """Base class for a group passed as ``--group key=value ...``."""
+    """Argument group passed as ``--group key=value ...``."""
 
 
 class PydanticArgsBase(_StrictModel):
-    """Base class for a command's complete, validated argument model."""
+    """Complete, validated argument model for a command."""
 
     def flattened(self) -> dict[str, Any]:
         """Return top-level and one-level nested values as one dictionary.

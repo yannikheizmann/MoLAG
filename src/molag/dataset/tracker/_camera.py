@@ -1,3 +1,5 @@
+"""Project tracker coordinates through the configured pinhole camera."""
+
 from __future__ import annotations
 
 import math
@@ -18,14 +20,17 @@ class CameraIntrinsics:
 
     @classmethod
     def aspect(cls) -> float:
+        """Return the image width-to-height ratio."""
         return CAMERA_WIDTH_PIXELS / CAMERA_HEIGHT_PIXELS
 
     @classmethod
     def hfov_deg(cls) -> float:
+        """Return the horizontal field of view in degrees."""
         return CAMERA_HORIZONTAL_FIELD_OF_VIEW_DEG
 
     @classmethod
     def vfov_deg(cls) -> float:
+        """Derive the vertical field of view in degrees."""
         horizontal = math.radians(CAMERA_HORIZONTAL_FIELD_OF_VIEW_DEG)
         vertical = 2.0 * math.atan(
             math.tan(horizontal / 2.0)
@@ -35,20 +40,24 @@ class CameraIntrinsics:
 
     @classmethod
     def fx(cls) -> float:
+        """Return the horizontal focal length in pixels."""
         horizontal = math.radians(CAMERA_HORIZONTAL_FIELD_OF_VIEW_DEG)
         return (CAMERA_WIDTH_PIXELS / 2.0) / math.tan(horizontal / 2.0)
 
     @classmethod
     def fy(cls) -> float:
+        """Return the vertical focal length in pixels."""
         vertical = math.radians(cls.vfov_deg())
         return (CAMERA_HEIGHT_PIXELS / 2.0) / math.tan(vertical / 2.0)
 
     @classmethod
     def cx(cls) -> float:
+        """Return the horizontal principal point in pixels."""
         return CAMERA_WIDTH_PIXELS / 2.0
 
     @classmethod
     def cy(cls) -> float:
+        """Return the vertical principal point in pixels."""
         return CAMERA_HEIGHT_PIXELS / 2.0
 
     @classmethod
@@ -86,6 +95,7 @@ class CameraIntrinsics:
         leds_world: FloatArray,
         L: int,
     ) -> tuple[FloatArray, np.ndarray]:
+        """Project tracker LEDs and return image coordinates with visibility."""
         coordinates = np.asarray(leds_world, dtype=np.float64)
         if coordinates.ndim != 3 or coordinates.shape[2] != 3:
             raise ValueError(
@@ -102,4 +112,3 @@ class CameraIntrinsics:
         num_trackers = coordinates.shape[0]
         pixels, valid = cls._project(coordinates.reshape(num_trackers * L, 3))
         return pixels.reshape(num_trackers, L, 2), valid.reshape(num_trackers, L)
-

@@ -1,3 +1,5 @@
+"""Randomly remove visible LEDs while preserving tracker support."""
+
 from __future__ import annotations
 
 from typing import Literal
@@ -17,6 +19,7 @@ class DropoutModifier(ModifierBase):
 
     @property
     def stage(self) -> ModifierStage:
+        """Apply dropout before coordinate normalisation."""
         return "pre_norm"
 
     def apply(
@@ -25,6 +28,7 @@ class DropoutModifier(ModifierBase):
         y: IntArray,
         rng: np.random.Generator,
     ) -> tuple[FloatArray, IntArray]:
+        """Drop sampled LEDs independently for each real tracker."""
         keep = np.ones(len(x), dtype=np.bool_)
         for tracker_id in np.unique(y[:, 0]):
             if tracker_id < 0:
@@ -41,4 +45,3 @@ class DropoutModifier(ModifierBase):
                 keep[indices] = False
                 keep[kept] = True
         return x[keep].copy(), y[keep].copy()
-

@@ -1,3 +1,5 @@
+"""Generate scene-aligned raw predictions from batched model inference."""
+
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -14,7 +16,7 @@ from ._predictions import PredictionCache, ScenePrediction
 
 
 class PredictionGenerator:
-    """Run batched model inference and preserve raw outputs per scene."""
+    """Batched model runner that preserves scene boundaries and raw logits."""
 
     def __init__(
         self,

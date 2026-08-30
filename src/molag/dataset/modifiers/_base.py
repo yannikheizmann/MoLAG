@@ -1,3 +1,5 @@
+"""Define the interface for deterministic scene modifiers."""
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
@@ -32,4 +34,3 @@ class ModifierBase(BaseModel, ABC):
         rng: np.random.Generator,
     ) -> tuple[FloatArray, IntArray]:
         """Transform one coordinate and label array pair."""
-

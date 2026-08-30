@@ -1,3 +1,5 @@
+"""Compose the argument groups shared by all command entrypoints."""
+
 from __future__ import annotations
 
 from pathlib import Path

@@ -1,3 +1,5 @@
+"""Graph neural network for tracker-affinity prediction."""
+
 from __future__ import annotations
 
 from typing import Any

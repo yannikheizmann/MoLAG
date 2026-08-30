@@ -1,3 +1,5 @@
+"""Transformers trainer with streaming graph-affinity metrics."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -12,7 +14,7 @@ from ._arguments import HuggingFaceTrainingAdapter
 
 
 class Trainer(TransformersTrainer):
-    """Train a model with injected collation and streaming metrics."""
+    """Transformers trainer with injected collation and streaming metrics."""
 
     def __init__(
         self,
@@ -41,6 +43,7 @@ class Trainer(TransformersTrainer):
         prediction_loss_only,
         ignore_keys=None,
     ):
+        """Run one prediction step and stream outputs into the metric collection."""
         loss, logits, labels = super().prediction_step(
             model,
             inputs,
@@ -63,6 +66,7 @@ class Trainer(TransformersTrainer):
         metric_key_prefix: str = "eval",
         **kwargs: Any,
     ):
+        """Evaluate the model and append the accumulated streaming metrics."""
         self._metrics.reset()
         output = super().evaluation_loop(
             *args,
@@ -78,6 +82,7 @@ class Trainer(TransformersTrainer):
         return output
 
     def train(self, *args: Any, **kwargs: Any) -> dict[str, float]:
+        """Train, persist the final state, and optionally publish the model."""
         if "resume_from_checkpoint" not in kwargs:
             kwargs["resume_from_checkpoint"] = (
                 str(self._resume_from_checkpoint)

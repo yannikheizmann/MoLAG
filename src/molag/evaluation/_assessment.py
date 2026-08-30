@@ -1,3 +1,5 @@
+"""Assess connected-component predictions against physical tracker labels."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -31,6 +33,7 @@ class TrackerAssessment:
 
     @property
     def failure_mode(self) -> GroupingFailureMode:
+        """Classify this tracker's mutually exclusive grouping outcome."""
         if self.correct:
             return GroupingFailureMode.CORRECT
         if self.has_merge and self.has_split:
@@ -94,6 +97,7 @@ class PartitionAssessment:
 
     @property
     def failure_mode(self) -> GroupingFailureMode:
+        """Classify the scene's mutually exclusive grouping outcome."""
         if self.correct:
             return GroupingFailureMode.CORRECT
         if self.has_real_merge and self.has_real_split:
@@ -106,10 +110,12 @@ class PartitionAssessment:
 
     @property
     def n_trackers(self) -> int:
+        """Return the number of real trackers in the scene."""
         return len(self.trackers)
 
     @property
     def n_trackers_correct(self) -> int:
+        """Return the number of intact, unmerged real trackers."""
         return sum(int(tracker.correct) for tracker in self.trackers)
 
     def complete_tracker_counts(self, num_leds: int) -> tuple[int, int, int]:

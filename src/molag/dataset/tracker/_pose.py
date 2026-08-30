@@ -1,3 +1,5 @@
+"""Represent and sample rigid tracker poses."""
+
 from __future__ import annotations
 
 import math
@@ -40,6 +42,7 @@ class TrackerPose:
 
     @classmethod
     def identity(cls) -> TrackerPose:
+        """Construct the identity pose at the world origin."""
         return cls(R=np.eye(3), t=np.zeros(3))
 
     @classmethod
@@ -48,6 +51,7 @@ class TrackerPose:
         rng: np.random.Generator,
         pose_cfg: PoseConfig | None = None,
     ) -> TrackerPose:
+        """Sample a camera-facing pose within configured translation bounds."""
         from molag.dataset import PoseConfig
 
         config = pose_cfg or PoseConfig()

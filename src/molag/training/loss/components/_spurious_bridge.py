@@ -1,3 +1,5 @@
+"""Spurious-path bridge-risk component."""
+
 import torch
 import torch.nn.functional as F
 
@@ -6,7 +8,7 @@ from ._base import AffinityLossComponentBase
 
 
 class SpuriousBridgeLossComponent(AffinityLossComponentBase):
-    """Penalize paths joining real trackers through spurious points."""
+    """Penalty for paths joining real trackers through spurious points."""
 
     def __init__(self, weight: float, margin: float, scaling_power: float,
                  eligible_scene_mean: bool) -> None:
@@ -14,6 +16,13 @@ class SpuriousBridgeLossComponent(AffinityLossComponentBase):
         self.margin = margin
 
     def __call__(self, context: AffinityLossContextBase):
+        """Evaluate widest-path bridge risk for every real tracker pair.
+
+        Tracker groups act as terminals and spurious points as intermediate nodes.
+        A Floyd--Warshall max--min closure yields the path whose weakest affinity is
+        strongest. Pairs without a spurious path contribute zero while remaining in
+        the scene denominator.
+        """
         forest = context.spanning_forest
         n_groups = forest.group_scene.numel()
         spurious_nodes = (context.tracker_labels < 0).nonzero(as_tuple=True)[0]

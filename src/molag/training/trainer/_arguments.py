@@ -1,13 +1,16 @@
+"""Adapt project training arguments to the Transformers backend."""
+
 from transformers import TrainingArguments
 
 from molag.config import TrainingArgs
 
 
 class HuggingFaceTrainingAdapter:
-    """Translate backend-neutral arguments to Hugging Face configuration."""
+    """Adapter from project configuration to Transformers arguments."""
 
     @staticmethod
     def create(args: TrainingArgs) -> TrainingArguments:
+        """Create Transformers arguments from the project configuration."""
         persistent_workers = (
             args.dataloader_persistent_workers and args.dataloader_num_workers > 0
         )

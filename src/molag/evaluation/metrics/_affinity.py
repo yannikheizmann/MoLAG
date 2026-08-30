@@ -1,3 +1,5 @@
+"""Compute binary classification metrics over all affinity edges."""
+
 import math
 
 import numpy as np
@@ -16,12 +18,14 @@ class AffinityMetrics(MetricsBase):
         self.reset()
 
     def reset(self) -> None:
+        """Clear accumulated confusion-matrix counts."""
         self._true_positive = 0
         self._true_negative = 0
         self._false_positive = 0
         self._false_negative = 0
 
     def update(self, **values) -> None:
+        """Accumulate edge logits and binary same-tracker labels."""
         logits = np.asarray(values["logits"], dtype=np.float32).reshape(-1)
         labels = np.asarray(values["labels"], dtype=np.int64).reshape(-1)
         if logits.shape != labels.shape:
@@ -34,6 +38,7 @@ class AffinityMetrics(MetricsBase):
         self._false_negative += int(np.sum(~predicted & positive))
 
     def compute(self) -> dict[str, float]:
+        """Return edge accuracy, precision, recall, and F1."""
         tp = self._true_positive
         tn = self._true_negative
         fp = self._false_positive

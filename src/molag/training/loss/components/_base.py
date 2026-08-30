@@ -1,3 +1,5 @@
+"""Abstract interface and scene reduction for affinity-loss components."""
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
@@ -9,7 +11,7 @@ from ..context import AffinityLossContextBase
 
 
 class AffinityLossComponentBase(ABC):
-    """Weighted component of an affinity-learning objective."""
+    """Weighted affinity condition with configurable scene reduction."""
 
     def __init__(
         self,
@@ -26,6 +28,7 @@ class AffinityLossComponentBase(ABC):
         self.eligible_scene_mean = eligible_scene_mean
 
     def _reduce_scenes(self, totals: Tensor, counts: Tensor) -> Tensor:
+        """Reduce condition totals as ``mean * count**scaling_power`` per scene."""
         safe_counts = counts.clamp(min=1.0)
         per_scene = (totals / safe_counts) * safe_counts.pow(self.scaling_power)
         if not self.eligible_scene_mean:
@@ -40,6 +43,7 @@ class AffinityLossComponentBase(ABC):
     def _mean_by_scene(
         self, values: Tensor, scene_ids: Tensor, n_scenes: int
     ) -> Tensor:
+        """Aggregate condition values by scene and apply the scene reduction."""
         totals = torch.zeros(n_scenes, dtype=values.dtype, device=values.device)
         counts = torch.zeros_like(totals)
         totals.scatter_add_(0, scene_ids, values)

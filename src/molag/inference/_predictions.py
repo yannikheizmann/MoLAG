@@ -1,3 +1,5 @@
+"""Represent and persist reusable raw predictions for fixed scenes."""
+
 from __future__ import annotations
 
 from collections.abc import Iterable, Iterator
@@ -9,7 +11,7 @@ import numpy as np
 
 @dataclass(frozen=True)
 class ScenePrediction:
-    """Model inputs, targets, and raw affinity outputs for one scene."""
+    """Coordinates, targets, graph edges, and raw logits for one scene."""
 
     coordinates: np.ndarray
     point_labels: np.ndarray
@@ -45,7 +47,11 @@ class ScenePrediction:
 
 
 class PredictionCache:
-    """Reusable raw model predictions for a fixed sequence of scenes."""
+    """Ordered, reusable raw predictions for a fixed sequence of scenes.
+
+    Caches preserve enough input and target data to calibrate thresholds, recompute
+    existing metrics, or add new metrics without loading the model or source dataset.
+    """
 
     FORMAT_VERSION = 1
 
@@ -64,7 +70,11 @@ class PredictionCache:
         return self._scenes[index]
 
     def to_npz(self, path: str | Path) -> Path:
-        """Save concatenated, pickle-free arrays with scene boundary offsets."""
+        """Save concatenated, pickle-free arrays with scene boundary offsets.
+
+        Returns:
+            Path to the compressed NumPy archive.
+        """
         destination = Path(path)
         destination.parent.mkdir(parents=True, exist_ok=True)
         node_counts = np.asarray(
@@ -102,7 +112,7 @@ class PredictionCache:
 
     @classmethod
     def from_npz(cls, path: str | Path) -> PredictionCache:
-        """Load a prediction cache without enabling NumPy object deserialization."""
+        """Load and validate a cache without enabling object deserialisation."""
         source = Path(path)
         if not source.is_file():
             raise FileNotFoundError(f"prediction cache not found: {source}")

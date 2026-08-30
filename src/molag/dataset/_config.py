@@ -1,3 +1,5 @@
+"""Validate and serialise synthetic dataset generation profiles."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -28,6 +30,7 @@ class PoseConfig(BaseModel):
 
     @model_validator(mode="after")
     def validate_bounds(self) -> PoseConfig:
+        """Validate ordered translation bounds and the allowed tilt range."""
         for axis in ("x", "y", "z"):
             lower = getattr(self, f"{axis}_min")
             upper = getattr(self, f"{axis}_max")
@@ -55,6 +58,7 @@ class DatasetConfig(BaseModel):
     @field_validator("num_trackers")
     @classmethod
     def validate_num_trackers(cls, value: int | list[int]) -> int | list[int]:
+        """Validate a fixed tracker count or inclusive tracker-count range."""
         if isinstance(value, bool):
             raise ValueError("num_trackers must be an integer or [minimum, maximum]")
         if isinstance(value, int):
@@ -73,11 +77,13 @@ class DatasetConfig(BaseModel):
     @field_validator("tracker")
     @classmethod
     def validate_tracker(cls, value: str) -> str:
+        """Validate that the requested tracker implementation is registered."""
         Registry.get("TrackerBase", value)
         return value
 
     @property
     def num_trackers_range(self) -> tuple[int, int]:
+        """Return the inclusive tracker-count range."""
         if isinstance(self.num_trackers, int):
             return self.num_trackers, self.num_trackers
         return self.num_trackers[0], self.num_trackers[1]
@@ -90,6 +96,7 @@ class DatasetConfig(BaseModel):
 
     @classmethod
     def from_yaml(cls, path: str | Path) -> DatasetConfig:
+        """Load and validate a dataset profile from YAML."""
         source = Path(path)
         with source.open(encoding="utf-8") as stream:
             values = yaml.safe_load(stream)
@@ -98,6 +105,7 @@ class DatasetConfig(BaseModel):
         return cls.model_validate(values)
 
     def to_yaml(self, path: str | Path) -> Path:
+        """Write the dataset profile to YAML and return its path."""
         destination = Path(path)
         destination.parent.mkdir(parents=True, exist_ok=True)
         with destination.open("w", encoding="utf-8") as stream:

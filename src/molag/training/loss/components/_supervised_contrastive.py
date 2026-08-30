@@ -1,3 +1,5 @@
+"""Scene-local supervised contrastive component."""
+
 import torch
 import torch.nn.functional as F
 from torch import Tensor
@@ -7,7 +9,7 @@ from ._base import AffinityLossComponentBase
 
 
 class SupervisedContrastiveLossComponent(AffinityLossComponentBase):
-    """Encourage scene-local embeddings of the same tracker to agree."""
+    """Scene-local supervised contrastive penalty for real-node embeddings."""
 
     def __init__(self, weight: float, temperature: float) -> None:
         super().__init__(weight)
@@ -16,6 +18,7 @@ class SupervisedContrastiveLossComponent(AffinityLossComponentBase):
         self.temperature = temperature
 
     def __call__(self, context: AffinityLossContextBase) -> Tensor:
+        """Contrast real nodes within each scene and average eligible scenes."""
         real_indices = (context.tracker_labels >= 0).nonzero(as_tuple=True)[0]
         if real_indices.numel() < 2:
             return context.zero

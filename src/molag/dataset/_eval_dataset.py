@@ -1,3 +1,5 @@
+"""Materialise deterministic scenes for calibration and evaluation."""
+
 from __future__ import annotations
 
 import logging
@@ -27,6 +29,7 @@ class EvalSample(BaseModel):
 
     @model_validator(mode="after")
     def validate_shapes(self) -> EvalSample:
+        """Validate coordinate and label shapes and finite coordinates."""
         if not self.x:
             raise ValueError("evaluation samples must contain at least one point")
         if len(self.x) != len(self.y):
@@ -41,9 +44,11 @@ class EvalSample(BaseModel):
 
     @classmethod
     def from_tensors(cls, x: torch.Tensor, y: torch.Tensor) -> EvalSample:
+        """Convert coordinate and label tensors into a serialisable sample."""
         return cls(x=x.tolist(), y=y.tolist())
 
     def to_tensors(self) -> dict[str, torch.Tensor]:
+        """Convert the stored values to model input tensors."""
         return {
             "x": torch.from_numpy(np.asarray(self.x, dtype=np.float32)),
             "y": torch.from_numpy(np.asarray(self.y, dtype=np.int64)),
@@ -66,6 +71,7 @@ class EvalDataset(BaseModel, Dataset):
 
     @model_validator(mode="after")
     def validate_metadata(self) -> EvalDataset:
+        """Validate sample counts and candidate-seed ranges."""
         if self.size != len(self.samples):
             raise ValueError("size must equal the number of frozen samples")
         for seed_range in self.candidate_seed_ranges:
@@ -84,6 +90,7 @@ class EvalDataset(BaseModel, Dataset):
         seed: int,
         description: str = "",
     ) -> EvalDataset:
+        """Generate a fixed sequence of scenes from consecutive candidate seeds."""
         profile_source = Path(profile_path)
         config = DatasetConfig.from_yaml(profile_source).model_copy(
             update={"size": size, "seed": seed}
@@ -199,6 +206,7 @@ class EvalDataset(BaseModel, Dataset):
 
     @classmethod
     def from_yaml(cls, path: str | Path) -> EvalDataset:
+        """Load and validate a frozen dataset from YAML."""
         source = Path(path)
         if not source.is_file():
             raise FileNotFoundError(f"evaluation dataset not found: {source}")
@@ -209,6 +217,7 @@ class EvalDataset(BaseModel, Dataset):
         return cls.model_validate(values)
 
     def to_yaml(self, path: str | Path) -> Path:
+        """Write the frozen dataset to YAML and return its path."""
         destination = Path(path)
         destination.parent.mkdir(parents=True, exist_ok=True)
         with destination.open("w", encoding="utf-8") as stream:

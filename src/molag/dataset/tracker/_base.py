@@ -1,3 +1,5 @@
+"""Define extensible tracker, code, and geometry interfaces."""
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
@@ -75,14 +77,17 @@ class TrackerBase(ABC, metaclass=RegistryMeta["TrackerBase"]):
 
     @property
     def code(self) -> TrackerCodeBase:
+        """Return the tracker's configuration code."""
         return self._code
 
     @property
     def pose(self) -> TrackerPose:
+        """Return the tracker's rigid world pose."""
         return self._pose
 
     @property
     def geometry(self) -> TrackerGeometryBase:
+        """Return the tracker's local LED geometry."""
         return self._geometry
 
     @classmethod
@@ -92,6 +97,7 @@ class TrackerBase(ABC, metaclass=RegistryMeta["TrackerBase"]):
         rng: np.random.Generator,
         pose_cfg: PoseConfig | None = None,
     ) -> TrackerBase:
+        """Construct a coded tracker with a sampled pose."""
         from ._pose import TrackerPose
 
         code = cls.CodeClass.from_id(id)
@@ -101,16 +107,20 @@ class TrackerBase(ABC, metaclass=RegistryMeta["TrackerBase"]):
 
     @property
     def id(self) -> int:
+        """Return the integer identifier represented by the tracker code."""
         return self.code.to_id()
 
     def get_leds_world_coords(self) -> FloatArray:
+        """Transform centred local LED coordinates into world coordinates."""
         local = self.geometry.as_array() - self.geometry.center
         return (self.pose.R @ local.T).T + self.pose.t
 
     @classmethod
     def num_leds(cls) -> int:
+        """Return the number of LEDs in a complete tracker."""
         return cls.GeometryClass.num_leds()
 
     @classmethod
     def num_unique_ids(cls) -> int:
+        """Return the number of unique tracker codes."""
         return cls.CodeClass.num_unique_ids()

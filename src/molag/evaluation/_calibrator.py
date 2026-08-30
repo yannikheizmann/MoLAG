@@ -1,3 +1,5 @@
+"""Select an inference threshold from cached scene predictions."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -10,7 +12,7 @@ from .metrics import MetricsBase
 
 @dataclass(frozen=True)
 class CalibrationResult:
-    """Selected threshold and complete metrics across the searched grid."""
+    """Selected threshold and metric values across the searched grid."""
 
     threshold: float
     objective: str
@@ -19,7 +21,13 @@ class CalibrationResult:
 
 
 class ThresholdCalibrator:
-    """Select an affinity threshold from one pass over frozen scenes."""
+    """Threshold-grid calibration over reusable prediction caches.
+
+    The model is evaluated before calibration. Each configured metric receives the
+    same raw scene predictions at every threshold, so changing the objective or grid
+    never requires another inference pass. Equal objective values prefer the higher
+    threshold, matching the conservative tie-break used for MoLAG evaluation.
+    """
 
     def __init__(
         self,
@@ -35,7 +43,11 @@ class ThresholdCalibrator:
         }
 
     def calibrate(self, predictions: PredictionCache) -> CalibrationResult:
-        """Select a threshold entirely from reusable cached predictions."""
+        """Select the best threshold from cached predictions.
+
+        Raises:
+            ValueError: If a configured metric does not provide the objective.
+        """
         for metric in self._metrics.values():
             metric.reset()
         for scene in predictions:

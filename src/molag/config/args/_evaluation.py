@@ -1,3 +1,5 @@
+"""Define model evaluation, calibration, and recomputation arguments."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -83,6 +85,7 @@ class EvaluationArgs(AdditionalArgsBase):
 
     @model_validator(mode="after")
     def validate_threshold_grid(self) -> EvaluationArgs:
+        """Validate that the calibration grid has exact, ordered steps."""
         if self.threshold_max <= self.threshold_min:
             raise ValueError("threshold_max must be greater than threshold_min")
         steps = (self.threshold_max - self.threshold_min) / self.threshold_step

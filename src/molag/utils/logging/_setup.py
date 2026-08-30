@@ -1,3 +1,5 @@
+"""Configure concise process-wide logging for command-line workflows."""
+
 import logging
 import sys
 

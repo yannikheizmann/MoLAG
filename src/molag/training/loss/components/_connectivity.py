@@ -1,3 +1,5 @@
+"""Within-tracker connectivity component."""
+
 import math
 
 import torch
@@ -11,7 +13,7 @@ from ._base import AffinityLossComponentBase
 
 
 class ConnectivityLossComponent(AffinityLossComponentBase):
-    """Penalize weak links in each real tracker's spanning tree."""
+    """Penalty for weak links in each real tracker's spanning tree."""
 
     def __init__(self, weight: float, margin: float, aggregation_beta: float,
                  delta_nontree: float, scaling_power: float,
@@ -22,6 +24,7 @@ class ConnectivityLossComponent(AffinityLossComponentBase):
         self.delta_nontree = delta_nontree
 
     def __call__(self, context: AffinityLossContextBase) -> Tensor:
+        """Evaluate the worst soft-margin connectivity condition per tracker."""
         forest = context.spanning_forest
         if forest.selected_edge_indices.numel() == 0:
             return context.zero

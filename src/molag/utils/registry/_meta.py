@@ -1,3 +1,5 @@
+"""Register concrete subclasses automatically from their class names."""
+
 from __future__ import annotations
 
 from abc import ABCMeta
@@ -21,6 +23,8 @@ class RegistryMeta(ABCMeta):
             raise ValueError("registered interface names must end in 'Base'")
 
         class ConfiguredRegistryMeta(cls):
+            """Registry metaclass bound to one interface name."""
+
             _interface_name = interface_name
             _implementation_suffix = interface_name.removesuffix("Base")
 
@@ -44,4 +48,3 @@ class RegistryMeta(ABCMeta):
                 f"{interface_name!r}."
             )
         Registry.register(interface_name, name.removesuffix(suffix), cls)
-

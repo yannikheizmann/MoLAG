@@ -1,3 +1,5 @@
+"""Registered model interface and local checkpoint persistence."""
+
 from __future__ import annotations
 
 from abc import ABC
@@ -11,10 +13,10 @@ from molag.utils.registry import RegistryMeta
 
 
 class ModelBase(nn.Module, ABC, metaclass=RegistryMeta["ModelBase"]):
-    """Common interface for registered MoLAG model implementations."""
+    """Registered neural-network model with local checkpoint persistence."""
 
     def save_local(self, path: str | Path) -> None:
-        """Save the model parameters to a local checkpoint."""
+        """Save model parameters as a PyTorch or Safetensors checkpoint."""
         checkpoint = Path(path)
         checkpoint.parent.mkdir(parents=True, exist_ok=True)
         if checkpoint.suffix == ".safetensors":
@@ -27,7 +29,7 @@ class ModelBase(nn.Module, ABC, metaclass=RegistryMeta["ModelBase"]):
         path: str | Path,
         map_location: str | torch.device = "cpu",
     ) -> None:
-        """Load model parameters from a local checkpoint."""
+        """Load model parameters from a PyTorch or Safetensors checkpoint."""
         checkpoint = Path(path)
         if checkpoint.suffix == ".safetensors":
             state = load_file(checkpoint, device=str(map_location))

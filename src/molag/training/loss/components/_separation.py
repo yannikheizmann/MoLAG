@@ -1,3 +1,5 @@
+"""Cross-tracker separation component."""
+
 import torch
 import torch.nn.functional as F
 
@@ -8,7 +10,7 @@ from ._base import AffinityLossComponentBase
 
 
 class SeparationLossComponent(AffinityLossComponentBase):
-    """Penalize affinities between different real trackers."""
+    """Penalty for strong affinities between different real trackers."""
 
     def __init__(self, weight: float, margin: float, aggregation_beta: float,
                  scaling_power: float, eligible_scene_mean: bool) -> None:
@@ -17,6 +19,7 @@ class SeparationLossComponent(AffinityLossComponentBase):
         self.aggregation_beta = aggregation_beta
 
     def __call__(self, context: AffinityLossContextBase):
+        """Evaluate the strongest soft-margin affinity per tracker pair."""
         forest = context.spanning_forest
         n_groups = forest.group_scene.numel()
         edge_ids = context.edge_categories.different_real.nonzero(as_tuple=True)[0]

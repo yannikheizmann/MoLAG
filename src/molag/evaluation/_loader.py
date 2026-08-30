@@ -1,3 +1,5 @@
+"""Reconstruct trained MoLAG models from local or Hub run artefacts."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -12,7 +14,7 @@ from molag.utils import resolve_device
 
 
 class ModelLoader:
-    """Reconstruct MoLAG and load weights from a finetuning run directory."""
+    """MoLAG model loader for the standard finetuning run layout."""
 
     CHECKPOINT_FILENAMES = (
         "model.safetensors",
@@ -28,7 +30,7 @@ class ModelLoader:
         token: str | bool | None = None,
         cache_dir: str | Path | None = None,
     ) -> Path:
-        """Download a model snapshot in the same layout as a local run."""
+        """Download and validate a model snapshot in the local run layout."""
         if not model_id.strip():
             raise ValueError("model_id must not be empty")
         snapshot = Path(
@@ -57,6 +59,7 @@ class ModelLoader:
         run_directory: str | Path,
         device: str | torch.device | None = "auto",
     ) -> MoLAGModel:
+        """Reconstruct a model from its configuration and selected checkpoint."""
         run_path = Path(run_directory)
         args = cls._load_args(run_path / "config.yaml")
         checkpoint = cls.find_checkpoint(run_path)

@@ -1,3 +1,5 @@
+"""Represent one synthetic scene of uniquely coded trackers."""
+
 from __future__ import annotations
 
 import numpy as np
@@ -55,12 +57,14 @@ class Sample:
         ]
 
     def get_world_coords(self) -> FloatArray:
+        """Return world coordinates with separate tracker and LED axes."""
         return np.stack(
             [tracker.get_leds_world_coords() for tracker in self._trackers],
             axis=0,
         )
 
     def get_trackers(self) -> list[TrackerBase]:
+        """Return a copy of the scene's tracker collection."""
         return list(self._trackers)
 
     def get_data(self) -> tuple[Float32Array, IntArray]:

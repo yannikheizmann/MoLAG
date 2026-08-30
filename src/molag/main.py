@@ -1,3 +1,5 @@
+"""Expose the shared command runner and installed MoLAG CLI entrypoints."""
+
 from __future__ import annotations
 
 import json
@@ -42,11 +44,16 @@ Mode = Literal["finetune", "evaluate", "recompute", "generate_eval_dataset"]
 
 
 class Main:
-    """Entrypoints for MoLAG workflows."""
+    """Static CLI entrypoints backed by one shared argument parser."""
 
     @staticmethod
     def run(mode: Mode, argv: Sequence[str] | None = None) -> None:
-        """Set up a command and route it to the selected workflow."""
+        """Parse the root configuration once and run the selected workflow.
+
+        Defaults are applied first, YAML configuration values override them, and
+        explicit CLI values take final precedence. The installed script supplies the
+        mode; it is not part of the configuration schema.
+        """
         setup_logging()
         args = ArgsParser(Args).parse(argv)
         try:
@@ -77,7 +84,7 @@ class Main:
 
     @staticmethod
     def recompute() -> None:
-        """Recompute evaluation metrics from saved raw predictions."""
+        """Recompute calibration and metrics from saved raw predictions."""
         Main.run("recompute")
 
     @staticmethod

@@ -1,3 +1,5 @@
+"""Define the interface for streaming evaluation metrics."""
+
 from abc import ABC, abstractmethod
 from typing import Any
 
@@ -8,13 +10,19 @@ class MetricsBase(ABC, metaclass=RegistryMeta["MetricsBase"]):
     """Interface for streaming evaluation accumulators."""
 
     @abstractmethod
-    def reset(self) -> None: ...
+    def reset(self) -> None:
+        """Clear all accumulated metric state."""
+        ...
 
     @abstractmethod
-    def update(self, **values: Any) -> None: ...
+    def update(self, **values: Any) -> None:
+        """Accumulate one batch or scene of predictions and targets."""
+        ...
 
     @abstractmethod
-    def compute(self) -> dict[str, float]: ...
+    def compute(self) -> dict[str, float]:
+        """Return metrics derived from the accumulated state."""
+        ...
 
     def breakdown(self) -> dict[str, Any]:
         """Return optional structured diagnostics accumulated with the metrics."""

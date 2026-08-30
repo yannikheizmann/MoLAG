@@ -1,3 +1,5 @@
+"""Compute scene- and tracker-level connected-component metrics."""
+
 import math
 from collections import defaultdict
 from typing import Any
@@ -33,6 +35,7 @@ class PartitionMetrics(MetricsBase):
         self.reset()
 
     def reset(self) -> None:
+        """Clear accumulated scene assessments and attachment counts."""
         self._scenes = 0
         self._correct = 0
         self._real_merges = 0
@@ -42,6 +45,7 @@ class PartitionMetrics(MetricsBase):
         self._spurious_attached: list[int] = []
 
     def update(self, **values) -> None:
+        """Accumulate one cached scene or one collated training batch."""
         logits = np.asarray(values["logits"], dtype=np.float32).reshape(-1)
         inputs = values.get("inputs")
         if inputs is not None:
@@ -99,6 +103,7 @@ class PartitionMetrics(MetricsBase):
         )
 
     def compute(self) -> dict[str, float]:
+        """Return aggregate scene-, tracker-, and complete-tracker metrics."""
         if self._scenes == 0:
             return {}
         real_only_correct = sum(
@@ -162,6 +167,7 @@ class PartitionMetrics(MetricsBase):
         return result
 
     def breakdown(self) -> dict[str, Any]:
+        """Return diagnostics stratified by scene and tracker characteristics."""
         by_n_trackers: dict[int, dict[str, int | float]] = defaultdict(
             lambda: {
                 "n_scenes": 0,
@@ -284,6 +290,7 @@ class PartitionMetrics(MetricsBase):
         }
 
     def sample_records(self) -> list[dict[str, Any]]:
+        """Return one diagnostic record per evaluated scene."""
         records: list[dict[str, Any]] = []
         for sample_index, (assessment, n_attached) in enumerate(
             zip(self._assessments, self._spurious_attached, strict=True)
@@ -316,6 +323,7 @@ class PartitionMetrics(MetricsBase):
         return records
 
     def tracker_records(self) -> list[dict[str, Any]]:
+        """Return one recovery record per real tracker."""
         records: list[dict[str, Any]] = []
         for sample_index, assessment in enumerate(self._assessments):
             for tracker in assessment.trackers:

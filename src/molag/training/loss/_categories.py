@@ -9,6 +9,8 @@ from torch import Tensor
 
 @dataclass(frozen=True)
 class EdgeCategories:
+    """Boolean masks partitioning edges by endpoint semantics."""
+
     same_real: Tensor
     different_real: Tensor
     spurious_real: Tensor
@@ -16,7 +18,7 @@ class EdgeCategories:
 
     @classmethod
     def from_graph(cls, edge_index: Tensor, tracker_labels: Tensor) -> Self:
-        """Categorize edges from the tracker labels of their endpoints."""
+        """Categorise edges from the tracker labels of their endpoints."""
         row, col = edge_index
         row_labels = tracker_labels[row]
         col_labels = tracker_labels[col]
@@ -30,4 +32,3 @@ class EdgeCategories:
             spurious_real=row_real ^ col_real,
             spurious_spurious=~row_real & ~col_real,
         )
-

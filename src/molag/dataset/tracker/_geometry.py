@@ -1,3 +1,5 @@
+"""Construct the coded seven-LED triangular tracker geometry."""
+
 from __future__ import annotations
 
 import math
@@ -23,19 +25,23 @@ class TriangularTrackerGeometry(TrackerGeometryBase):
 
     @classmethod
     def from_code(cls, code: TrackerCodeBase) -> TriangularTrackerGeometry:
+        """Construct geometry for a triangular tracker code."""
         if not isinstance(code, TriangularTrackerCode):
             raise TypeError("code must be a TriangularTrackerCode")
         return cls(code=code)
 
     @classmethod
     def num_leds(cls) -> int:
+        """Return the number of LEDs in the triangular geometry."""
         return 7
 
     @property
     def center(self) -> FloatArray:
+        """Return the centroid of the three tracker vertices."""
         return self._vertices().mean(axis=0)
 
     def as_array(self) -> FloatArray:
+        """Return vertex and coded side-LED coordinates."""
         vertices = self._vertices()
         side_leds = self._side_leds(vertices)
         return np.concatenate((vertices, side_leds), axis=0)

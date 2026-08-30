@@ -1,3 +1,5 @@
+"""Spurious-point attachment component."""
+
 import torch
 import torch.nn.functional as F
 
@@ -8,7 +10,7 @@ from ._base import AffinityLossComponentBase
 
 
 class SpuriousAttachmentLossComponent(AffinityLossComponentBase):
-    """Penalize attachment of spurious points to real trackers."""
+    """Penalty for attaching a spurious point to a real tracker."""
 
     def __init__(self, weight: float, margin: float, aggregation_beta: float,
                  eligible_scene_mean: bool) -> None:
@@ -17,6 +19,7 @@ class SpuriousAttachmentLossComponent(AffinityLossComponentBase):
         self.aggregation_beta = aggregation_beta
 
     def __call__(self, context: AffinityLossContextBase):
+        """Evaluate the strongest affinity per tracker--spurious-point pair."""
         edge_ids = context.edge_categories.spurious_real.nonzero(as_tuple=True)[0]
         if edge_ids.numel() == 0:
             return context.zero

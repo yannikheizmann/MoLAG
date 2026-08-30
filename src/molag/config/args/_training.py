@@ -1,3 +1,5 @@
+"""Define optimisation, checkpointing, and integration arguments."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -138,6 +140,7 @@ class TrainingArgs(AdditionalArgsBase):
     )
 
     def model_post_init(self, __context: object) -> None:
+        """Validate mutually dependent precision and Hub settings."""
         if self.fp16 and self.bf16:
             raise ValueError("fp16 and bf16 cannot both be enabled")
         if self.push_to_hub and not self.hub_model_id:
@@ -147,6 +150,7 @@ class TrainingArgs(AdditionalArgsBase):
 
     @model_validator(mode="after")
     def validate_best_model_metric(self) -> TrainingArgs:
+        """Ensure the selected best-model metric is computed during training."""
         required_metric = {
             "edge_accuracy": "Affinity",
             "edge_precision": "Affinity",

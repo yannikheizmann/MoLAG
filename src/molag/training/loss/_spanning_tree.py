@@ -9,6 +9,8 @@ from torch import Tensor
 
 @dataclass(frozen=True)
 class SpanningForest:
+    """Maximum spanning trees and tracker-group metadata for a scene batch."""
+
     selected_edge_indices: Tensor
     selected_group_indices: Tensor
     group_scene: Tensor
@@ -25,11 +27,15 @@ def maximum_spanning_forest(
     *,
     max_tracker_nodes: int,
 ) -> SpanningForest:
-    """Select one maximum spanning tree per ``(scene, tracker_id)`` group.
+    """Select one maximum spanning tree per scene-local real tracker.
 
     Prim selection uses detached logits. The returned integer indices select the
-    original logits, so gradients flow through chosen tree-edge values but not
-    through the discrete choice itself.
+    original logits, so gradients flow through selected edge values but not through
+    the discrete choice itself.
+
+    Raises:
+        ValueError: If a tracker exceeds ``max_tracker_nodes``.
+        RuntimeError: If the supplied graph does not connect every real tracker.
     """
     device = edge_logits.device
     n_nodes = tracker_labels.numel()
@@ -152,4 +158,3 @@ def maximum_spanning_forest(
         group_sizes=group_sizes,
         node_group=node_group,
     )
-

@@ -1,3 +1,5 @@
+"""Define synthetic training and validation dataset arguments."""
+
 from __future__ import annotations
 
 from pathlib import Path

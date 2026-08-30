@@ -1,3 +1,5 @@
+"""Perturb normalised image coordinates with Gaussian noise."""
+
 from __future__ import annotations
 
 from typing import Literal
@@ -16,6 +18,7 @@ class PixelNoiseModifier(ModifierBase):
 
     @property
     def stage(self) -> ModifierStage:
+        """Apply noise after coordinate normalisation."""
         return "post_norm"
 
     def apply(
@@ -24,6 +27,6 @@ class PixelNoiseModifier(ModifierBase):
         y: IntArray,
         rng: np.random.Generator,
     ) -> tuple[FloatArray, IntArray]:
+        """Add independent Gaussian noise without changing labels."""
         noise = rng.normal(0.0, self.std, size=x.shape).astype(np.float32)
         return x + noise, y
-

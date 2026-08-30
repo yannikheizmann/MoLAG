@@ -1,3 +1,5 @@
+"""Combine independent streaming metrics into one evaluation pass."""
+
 from __future__ import annotations
 
 from collections.abc import Sequence
@@ -7,7 +9,7 @@ from ._base import MetricsBase
 
 
 class CombinedMetrics(MetricsBase):
-    """Update multiple streaming metric implementations in one pass."""
+    """Composite that fans out one stream to independent metric instances."""
 
     def __init__(self, metrics: Sequence[MetricsBase]) -> None:
         if not metrics:
@@ -15,14 +17,17 @@ class CombinedMetrics(MetricsBase):
         self._metrics = list(metrics)
 
     def reset(self) -> None:
+        """Reset every contained metric."""
         for metric in self._metrics:
             metric.reset()
 
     def update(self, **values: Any) -> None:
+        """Forward one update to every contained metric."""
         for metric in self._metrics:
             metric.update(**values)
 
     def compute(self) -> dict[str, float]:
+        """Merge scalar results while rejecting duplicate metric names."""
         result: dict[str, float] = {}
         for metric in self._metrics:
             values = metric.compute()
@@ -34,6 +39,7 @@ class CombinedMetrics(MetricsBase):
         return result
 
     def breakdown(self) -> dict[str, Any]:
+        """Merge structured breakdowns while rejecting duplicate names."""
         result: dict[str, Any] = {}
         for metric in self._metrics:
             values = metric.breakdown()
@@ -45,9 +51,11 @@ class CombinedMetrics(MetricsBase):
         return result
 
     def sample_records(self) -> list[dict[str, Any]]:
+        """Merge scene records by sample index."""
         return self._merge_records("sample records", ("sample_index",))
 
     def tracker_records(self) -> list[dict[str, Any]]:
+        """Merge tracker records by sample and tracker identifiers."""
         return self._merge_records(
             "tracker records", ("sample_index", "tracker_id")
         )

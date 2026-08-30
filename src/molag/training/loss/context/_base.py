@@ -1,3 +1,5 @@
+"""Abstract batch context for affinity-loss components."""
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
@@ -9,7 +11,7 @@ from .._spanning_tree import SpanningForest
 
 
 class AffinityLossContextBase(ABC):
-    """Inputs and derived graph structures shared by affinity-loss components."""
+    """Batch inputs and derived structures shared by affinity-loss components."""
 
     def __init__(
         self,
@@ -34,12 +36,17 @@ class AffinityLossContextBase(ABC):
 
     @property
     def zero(self) -> Tensor:
+        """Return a differentiable scalar zero connected to model outputs."""
         return self.edge_logits.sum() * 0 + self.node_embeddings.sum() * 0
 
     @property
     @abstractmethod
-    def edge_categories(self) -> EdgeCategories: ...
+    def edge_categories(self) -> EdgeCategories:
+        """Return masks that partition edges by endpoint semantics."""
+        ...
 
     @property
     @abstractmethod
-    def spanning_forest(self) -> SpanningForest: ...
+    def spanning_forest(self) -> SpanningForest:
+        """Return maximum spanning trees for all scene-local real trackers."""
+        ...

@@ -1,3 +1,5 @@
+"""Add unassigned detections to synthetic scenes."""
+
 from __future__ import annotations
 
 from typing import Literal
@@ -17,12 +19,14 @@ class SpuriousBlobsModifier(ModifierBase):
 
     @model_validator(mode="after")
     def validate_blob_range(self) -> SpuriousBlobsModifier:
+        """Validate the inclusive range of spurious detections."""
         if self.max_blobs < self.min_blobs:
             raise ValueError("max_blobs must be greater than or equal to min_blobs")
         return self
 
     @property
     def stage(self) -> ModifierStage:
+        """Add spurious detections before coordinate normalisation."""
         return "pre_norm"
 
     def apply(
@@ -31,6 +35,7 @@ class SpuriousBlobsModifier(ModifierBase):
         y: IntArray,
         rng: np.random.Generator,
     ) -> tuple[FloatArray, IntArray]:
+        """Sample spurious detections within the real-point bounding box."""
         num_blobs = int(rng.integers(self.min_blobs, self.max_blobs + 1))
         real_coordinates = x[y[:, 0] >= 0]
         if len(real_coordinates):
@@ -57,4 +62,3 @@ class SpuriousBlobsModifier(ModifierBase):
             np.concatenate((x, coordinates), axis=0),
             np.concatenate((y, labels), axis=0),
         )
-

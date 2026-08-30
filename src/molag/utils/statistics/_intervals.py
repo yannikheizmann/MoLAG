@@ -1,3 +1,5 @@
+"""Compute confidence intervals used by evaluation summaries."""
+
 from __future__ import annotations
 
 from collections.abc import Sequence

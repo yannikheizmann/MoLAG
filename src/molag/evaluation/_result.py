@@ -1,3 +1,5 @@
+"""Persist aggregate evaluation results and detailed diagnostic tables."""
+
 from __future__ import annotations
 
 import csv
@@ -17,7 +19,11 @@ class EvaluationResult:
     trackers: list[dict[str, Any]]
 
     def write(self, path: str | Path, metadata: dict[str, Any]) -> Path:
-        """Write the JSON summary and detailed CSV records."""
+        """Write the JSON summary and scene- and tracker-level CSV records.
+
+        Returns:
+            Path to the JSON summary.
+        """
         destination = Path(path)
         destination.parent.mkdir(parents=True, exist_ok=True)
         payload = {**metadata, "metrics": self.metrics, "breakdown": self.breakdown}

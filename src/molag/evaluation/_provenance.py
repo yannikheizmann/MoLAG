@@ -1,3 +1,5 @@
+"""Capture reproducibility metadata for evaluation artefacts."""
+
 from __future__ import annotations
 
 import hashlib
@@ -16,13 +18,14 @@ from ._loader import ModelLoader
 
 @dataclass(frozen=True)
 class FileFingerprint:
-    """Identity of one file used or produced by evaluation."""
+    """Path and SHA-256 identity of an evaluation file."""
 
     path: str
     sha256: str
 
     @classmethod
     def from_path(cls, path: str | Path) -> FileFingerprint:
+        """Hash a file and retain the supplied path in the fingerprint."""
         source = Path(path)
         if not source.is_file():
             raise FileNotFoundError(f"provenance file not found: {source}")
@@ -35,7 +38,7 @@ class FileFingerprint:
 
 @dataclass(frozen=True)
 class EvaluationProvenance:
-    """Reproducibility metadata for one evaluation result."""
+    """Source, environment, model, and file identity for an evaluation."""
 
     created_at: str
     source_revision: str | None
@@ -57,7 +60,12 @@ class EvaluationProvenance:
         calibration_predictions: str | Path | None = None,
         model_directory: str | Path | None = None,
     ) -> EvaluationProvenance:
-        """Collect source, environment, model, and file identities."""
+        """Collect reproducibility metadata for an evaluation run.
+
+        File hashes cover the configuration, checkpoint, frozen dataset, raw
+        predictions, and any calibration artefacts. Git state is best-effort because
+        installed distributions need not reside in a repository.
+        """
         run_path = Path(run_directory)
         model_path = (
             Path(model_directory) if model_directory is not None else run_path
@@ -92,6 +100,7 @@ class EvaluationProvenance:
         )
 
     def to_dict(self) -> dict[str, Any]:
+        """Convert the nested provenance record to serialisable dictionaries."""
         return asdict(self)
 
     @staticmethod

@@ -1,3 +1,5 @@
+"""Provide differentiable grouped reductions for affinity-loss components."""
+
 import math
 
 import torch

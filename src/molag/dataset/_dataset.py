@@ -1,3 +1,5 @@
+"""Generate deterministic synthetic tracking scenes on demand."""
+
 from __future__ import annotations
 
 import logging
@@ -78,10 +80,12 @@ class TrackingDataset(Dataset):
 
     @property
     def num_trackers_range(self) -> tuple[int, int]:
+        """Return the inclusive range sampled for the number of trackers."""
         return self._num_trackers_min, self._num_trackers_max
 
     @classmethod
     def from_config(cls, config: DatasetConfig) -> TrackingDataset:
+        """Construct a dataset from a validated generation profile."""
         return cls(
             size=config.size,
             num_trackers=config.num_trackers_range,

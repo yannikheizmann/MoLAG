@@ -1,3 +1,5 @@
+"""Collate variable-sized tracking scenes into PyTorch Geometric batches."""
+
 from __future__ import annotations
 
 from collections.abc import Sequence

@@ -1,3 +1,5 @@
+"""Compute affinity metrics restricted to pairs of real detections."""
+
 from __future__ import annotations
 
 import numpy as np
@@ -11,6 +13,7 @@ class RealAffinityMetrics(AffinityMetrics):
     """Accumulate affinity metrics only for edges joining two real detections."""
 
     def update(self, **values) -> None:
+        """Accumulate logits for edges whose endpoints are both real."""
         logits = np.asarray(values["logits"], dtype=np.float32).reshape(-1)
         labels = np.asarray(values["labels"], dtype=np.int64).reshape(-1)
         inputs = values.get("inputs")
@@ -30,6 +33,7 @@ class RealAffinityMetrics(AffinityMetrics):
         super().update(logits=logits[real_edges], labels=labels[real_edges])
 
     def compute(self) -> dict[str, float]:
+        """Return real-real edge classification metrics."""
         return {
             name.replace("edge_", "real_real_edge_", 1): value
             for name, value in super().compute().items()

@@ -1,3 +1,5 @@
+"""Complete-graph construction and unordered-edge selection."""
+
 from functools import lru_cache
 
 import torch
@@ -6,7 +8,11 @@ from torch import Tensor
 
 @lru_cache(maxsize=128)
 def full_edge_index(num_nodes: int) -> Tensor:
-    """Return both directed edges for every distinct pair of nodes."""
+    """Construct both directed edges for every distinct node pair.
+
+    The cached tensor remains on the CPU; callers may rely on PyTorch Geometric
+    batching or an explicit transfer to move it to another device.
+    """
     if num_nodes < 0:
         raise ValueError("num_nodes must not be negative")
     if num_nodes <= 1:
@@ -21,7 +27,7 @@ def full_edge_index(num_nodes: int) -> Tensor:
 
 
 def upper_tri_mask(edge_index: Tensor) -> Tensor:
-    """Select one directed edge for each unordered node pair."""
+    """Select the ``source < destination`` representative of each node pair."""
     if edge_index.ndim != 2 or edge_index.shape[0] != 2:
         raise ValueError("edge_index must have shape (2, num_edges)")
     source, destination = edge_index

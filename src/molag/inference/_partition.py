@@ -1,3 +1,5 @@
+"""Extract candidate groups as connected components of affinity graphs."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -7,7 +9,7 @@ import numpy as np
 
 @dataclass(frozen=True)
 class AffinityPartition:
-    """Connected-component partition of an affinity graph."""
+    """Connected-component partition of an undirected affinity graph."""
 
     component_ids: np.ndarray
 

@@ -1,3 +1,5 @@
+"""Merge Pydantic defaults, YAML profiles, and nested CLI overrides."""
+
 from __future__ import annotations
 
 import argparse
@@ -37,6 +39,12 @@ class ArgsParser:
         self._args_type = args_type
 
     def parse(self, argv: Sequence[str] | None = None) -> PydanticArgsBase:
+        """Parse, merge, validate, and report the resolved command arguments.
+
+        Raises:
+            ConfigKeyError: If YAML contains a field outside the Pydantic schema.
+            SystemExit: If command-line syntax is invalid.
+        """
         namespace = self._build_parser().parse_args(argv)
         explicit = vars(namespace)
         config_path = explicit.pop("config", None)

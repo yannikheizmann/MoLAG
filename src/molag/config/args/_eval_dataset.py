@@ -1,3 +1,5 @@
+"""Define frozen evaluation-dataset generation arguments."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -61,6 +63,7 @@ class EvalDatasetGenerationArgs(AdditionalArgsBase):
 
     @model_validator(mode="after")
     def validate_stratification(self) -> EvalDatasetGenerationArgs:
+        """Validate tracker-count strata and their generation budget."""
         if self.max_trackers < self.min_trackers:
             raise ValueError("max_trackers must not be below min_trackers")
         if (

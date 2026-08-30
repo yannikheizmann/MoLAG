@@ -1,3 +1,5 @@
+"""Composable scaled-conjunction affinity objective."""
+
 from __future__ import annotations
 
 import math
@@ -17,7 +19,13 @@ from .context import FullAffinityLossContext
 
 
 class ScaledConjunctionAffinityLoss:
-    """Combine independently configurable affinity-loss components."""
+    """Weighted conjunction of tracker-connectivity and separation conditions.
+
+    Connectivity penalises weak within-tracker links, separation penalises strong
+    cross-tracker links, attachment discourages spurious points from joining a
+    tracker, and bridge risk penalises spurious paths between trackers. An optional
+    supervised contrastive term structures the real-node embeddings.
+    """
 
     def __init__(
         self,
@@ -89,6 +97,11 @@ class ScaledConjunctionAffinityLoss:
         edge_index: Tensor,
         n_scenes: int | None = None,
     ) -> Tensor:
+        """Evaluate the weighted objective for a batch of scene graphs.
+
+        ``edge_labels`` is retained as part of the general affinity-loss interface;
+        structured conditions are derived from ``tracker_labels``.
+        """
         context = FullAffinityLossContext(
             edge_logits=edge_logits,
             edge_labels=edge_labels,

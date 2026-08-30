@@ -1,3 +1,5 @@
+"""Store named implementations for extensible project interfaces."""
+
 from __future__ import annotations
 
 from threading import RLock
@@ -17,6 +19,7 @@ class Registry:
         name: str,
         implementation: type[Any],
     ) -> None:
+        """Register one implementation under an interface-specific name."""
         with cls._lock:
             implementations = cls._registries.setdefault(interface_name, {})
             if name in implementations:
@@ -27,6 +30,7 @@ class Registry:
 
     @classmethod
     def get(cls, interface_name: str, name: str) -> type[Any]:
+        """Return a named implementation or report available alternatives."""
         with cls._lock:
             try:
                 implementations = cls._registries[interface_name]
@@ -45,6 +49,7 @@ class Registry:
 
     @classmethod
     def get_all(cls, interface_name: str) -> dict[str, type[Any]]:
+        """Return a snapshot of every implementation for an interface."""
         with cls._lock:
             if interface_name not in cls._registries:
                 raise ValueError(
@@ -54,6 +59,7 @@ class Registry:
 
     @classmethod
     def unregister(cls, interface_name: str, name: str) -> None:
+        """Remove a named implementation when present."""
         with cls._lock:
             implementations = cls._registries.get(interface_name)
             if implementations is not None:
@@ -61,9 +67,9 @@ class Registry:
 
     @classmethod
     def clear(cls, interface_name: str | None = None) -> None:
+        """Clear one interface registry, or every registry when omitted."""
         with cls._lock:
             if interface_name is None:
                 cls._registries.clear()
             else:
                 cls._registries.pop(interface_name, None)
-
