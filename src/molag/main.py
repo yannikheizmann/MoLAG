@@ -129,11 +129,13 @@ class Main:
             dataloader_num_workers=args.dataloader_num_workers,
         )
         result = evaluator.evaluate()
+        breakdown = evaluator.breakdown()
         Main._save_evaluation_result(
             args,
             dataset,
             threshold,
             result,
+            breakdown,
             calibration is not None,
         )
         return result
@@ -144,6 +146,7 @@ class Main:
         dataset: EvalDataset,
         threshold: float,
         metrics: dict[str, float],
+        breakdown: dict,
         calibrated: bool,
     ) -> None:
         output = args.run_directory / EVALUATION_RESULT_FILENAME
@@ -160,6 +163,7 @@ class Main:
             ),
             "threshold": threshold,
             "metrics": metrics,
+            "breakdown": breakdown,
         }
         output.write_text(json.dumps(payload, indent=2) + "\n")
 

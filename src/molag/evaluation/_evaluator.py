@@ -46,3 +46,7 @@ class Evaluator:
                     inputs=inputs,
                 )
         return self._metrics.compute()
+
+    def breakdown(self) -> dict[str, Any]:
+        """Return structured diagnostics from the latest evaluation pass."""
+        return self._metrics.breakdown()

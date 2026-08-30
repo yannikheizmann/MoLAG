@@ -13,6 +13,9 @@ class CountingMetrics(MetricsBase):
     def compute(self) -> dict[str, float]:
         return {"count": float(self.count)}
 
+    def breakdown(self) -> dict[str, object]:
+        return {"counts": {"total": self.count}}
+
 
 def test_collection_updates_all_metrics() -> None:
     first = CountingMetrics()
@@ -24,6 +27,14 @@ def test_collection_updates_all_metrics() -> None:
 
     assert first.compute() == {"count": 3.0}
     assert second.compute() == {"count": 3.0}
+
+
+def test_collection_combines_breakdowns() -> None:
+    collection = CombinedMetrics([CountingMetrics()])
+    collection.reset()
+    collection.update(count=3)
+
+    assert collection.breakdown() == {"counts": {"total": 3}}
 
 
 def test_collection_rejects_duplicate_result_names() -> None:

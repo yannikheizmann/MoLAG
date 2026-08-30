@@ -32,3 +32,14 @@ class CombinedMetrics(MetricsBase):
                 raise ValueError(f"duplicate metric names: {names}")
             result.update(values)
         return result
+
+    def breakdown(self) -> dict[str, Any]:
+        result: dict[str, Any] = {}
+        for metric in self._metrics:
+            values = metric.breakdown()
+            duplicates = result.keys() & values.keys()
+            if duplicates:
+                names = ", ".join(sorted(duplicates))
+                raise ValueError(f"duplicate breakdown names: {names}")
+            result.update(values)
+        return result

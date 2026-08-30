@@ -43,17 +43,12 @@ def test_calibrator_uses_higher_threshold_to_break_ties() -> None:
     assert result.threshold == 0.8
     assert result.objective == "partition_accuracy"
     assert result.objective_value == 1.0
-    expected_metrics = {
-        "partition_accuracy": 1.0,
-        "real_merge_rate": 0.0,
-        "real_split_rate": 0.0,
-        "spurious_bridge_rate": 0.0,
-    }
-    assert result.metrics_by_threshold == {
-        0.2: expected_metrics,
-        0.5: expected_metrics,
-        0.8: expected_metrics,
-    }
+    assert set(result.metrics_by_threshold) == {0.2, 0.5, 0.8}
+    for metrics in result.metrics_by_threshold.values():
+        assert metrics["partition_accuracy"] == 1.0
+        assert metrics["real_merge_rate"] == 0.0
+        assert metrics["real_split_rate"] == 0.0
+        assert metrics["spurious_bridge_rate"] == 0.0
 
 
 def test_calibrator_supports_affinity_metric_objectives() -> None:

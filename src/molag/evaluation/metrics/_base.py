@@ -15,3 +15,7 @@ class MetricsBase(ABC, metaclass=RegistryMeta["MetricsBase"]):
 
     @abstractmethod
     def compute(self) -> dict[str, float]: ...
+
+    def breakdown(self) -> dict[str, Any]:
+        """Return optional structured diagnostics accumulated with the metrics."""
+        return {}
