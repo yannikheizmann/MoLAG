@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Literal
-
 from pydantic import Field, PositiveInt, model_validator
 
 from molag.utils.argparsing import AdditionalArgsBase
@@ -61,7 +59,7 @@ class EvaluationArgs(AdditionalArgsBase):
             "Explicit affinity threshold. When set, the calibration phase is skipped."
         ),
     )
-    metrics: list[Literal["Affinity", "Partition"]] = Field(
+    metrics: list[str] = Field(
         default_factory=lambda: ["Affinity", "Partition"],
         min_length=1,
         description="Registered streaming metrics evaluated in one pass.",

@@ -3,7 +3,14 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field, NonNegativeFloat, NonNegativeInt, PositiveFloat, PositiveInt
+from pydantic import (
+    Field,
+    NonNegativeFloat,
+    NonNegativeInt,
+    PositiveFloat,
+    PositiveInt,
+    model_validator,
+)
 
 from molag.utils.argparsing import AdditionalArgsBase
 
@@ -84,8 +91,14 @@ class TrainingArgs(AdditionalArgsBase):
         default=42,
         description="Seed for model initialisation and training operations.",
     )
-    metric_for_best_model: Literal["loss", "grouping_accuracy"] = Field(
+    training_metrics: list[str] = Field(
+        default_factory=lambda: ["Affinity"],
+        min_length=1,
+        description="Registered streaming metrics used during training evaluation.",
+    )
+    metric_for_best_model: str = Field(
         default="loss",
+        min_length=1,
         description="Evaluation metric used to select the retained checkpoint.",
     )
     load_best_model_at_end: bool = Field(
@@ -130,3 +143,19 @@ class TrainingArgs(AdditionalArgsBase):
             raise ValueError(
                 "hub_model_id is required when push_to_hub is enabled"
             )
+
+    @model_validator(mode="after")
+    def validate_best_model_metric(self) -> TrainingArgs:
+        required_metric = {
+            "edge_accuracy": "Affinity",
+            "edge_precision": "Affinity",
+            "edge_recall": "Affinity",
+            "edge_f1": "Affinity",
+            "partition_accuracy": "Partition",
+        }.get(self.metric_for_best_model)
+        if required_metric is not None and required_metric not in self.training_metrics:
+            raise ValueError(
+                f"metric_for_best_model={self.metric_for_best_model!r} requires "
+                f"{required_metric!r} in training_metrics"
+            )
+        return self

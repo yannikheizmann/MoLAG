@@ -22,6 +22,7 @@ def test_training_arguments_are_mapped_to_hugging_face() -> None:
     assert target.dataloader_persistent_workers is False
     assert target.remove_unused_columns is False
     assert target.label_names == ["edge_labels", "tracker_labels"]
+    assert target.metric_for_best_model == "loss"
 
 
 def test_external_integrations_are_mapped_only_when_enabled() -> None:

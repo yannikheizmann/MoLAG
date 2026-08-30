@@ -4,6 +4,7 @@ import yaml
 
 from molag.config import Args, DatasetArgs, LossArgs, ModelArgs, TrainingArgs
 from molag.main import Main
+from molag.evaluation import CombinedMetrics
 
 
 class TrainerStub:
@@ -49,6 +50,7 @@ def test_execute_builds_disjoint_splits_and_saves_configuration(
     assert trainer.kwargs["eval_dataset"]._seed == 25
     assert (output_dir / "config.yaml").exists()
     assert (output_dir / "dataset_profile.yaml").exists()
+    assert isinstance(trainer.kwargs["metrics"], CombinedMetrics)
     assert metrics == {"train_loss": 1.0}
 
 

@@ -46,6 +46,7 @@ def test_molag_defaults() -> None:
     assert args.training_args.bf16 is True
     assert args.training_args.report_to == []
     assert args.training_args.push_to_hub is False
+    assert args.training_args.training_metrics == ["Affinity"]
     assert args.evaluation_args.hub_model_id is None
     assert args.evaluation_args.hub_revision is None
 
@@ -53,6 +54,17 @@ def test_molag_defaults() -> None:
 def test_enabled_hub_requires_repository() -> None:
     with pytest.raises(ValueError, match="hub_model_id is required"):
         TrainingArgs(push_to_hub=True)
+
+
+def test_best_model_metric_requires_its_training_metric() -> None:
+    with pytest.raises(ValueError, match="requires 'Partition'"):
+        TrainingArgs(metric_for_best_model="partition_accuracy")
+
+    args = TrainingArgs(
+        training_metrics=["Affinity", "Partition"],
+        metric_for_best_model="partition_accuracy",
+    )
+    assert args.metric_for_best_model == "partition_accuracy"
 
 
 def test_nested_cli_syntax() -> None:

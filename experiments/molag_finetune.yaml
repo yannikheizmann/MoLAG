@@ -43,6 +43,7 @@ training_args:
   fp16: false
   bf16: true
   seed: 42
+  training_metrics: [Affinity]
   metric_for_best_model: loss
   load_best_model_at_end: true
   resume_from_checkpoint: null

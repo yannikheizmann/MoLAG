@@ -21,7 +21,6 @@ from molag.dataset import (
     TrackingDataset,
 )
 from molag.evaluation import (
-    AffinityMetrics,
     CombinedMetrics,
     Evaluator,
     EvaluationProvenance,
@@ -101,7 +100,7 @@ class Main:
             eval_dataset=TrackingDataset.from_config(eval_config),
             training_args=args.training_args,
             data_collator=PyGTrackingAffinityCollator(),
-            metrics=AffinityMetrics(),
+            metrics=Main._create_metrics(args.training_args.training_metrics),
         )
         return trainer.train()
 
@@ -124,12 +123,7 @@ class Main:
         else:
             threshold = args.threshold
         dataset = EvalDataset.from_yaml(args.dataset)
-        metrics = CombinedMetrics(
-            [
-                Registry.get("MetricsBase", name)(threshold=threshold)
-                for name in args.metrics
-            ]
-        )
+        metrics = Main._create_metrics(args.metrics, threshold)
         evaluator = Evaluator(
             model=model,
             dataset=dataset,
@@ -259,11 +253,8 @@ class Main:
             model=model,
             dataset=dataset,
             data_collator=PyGTrackingAffinityCollator(),
-            metric_factory=lambda threshold: CombinedMetrics(
-                [
-                    Registry.get("MetricsBase", name)(threshold=threshold)
-                    for name in args.metrics
-                ]
+            metric_factory=lambda threshold: Main._create_metrics(
+                args.metrics, threshold
             ),
             objective=args.objective,
             thresholds=thresholds,
@@ -289,3 +280,16 @@ class Main:
         output.parent.mkdir(parents=True, exist_ok=True)
         output.write_text(json.dumps(payload, indent=2) + "\n")
         return payload
+
+    @staticmethod
+    def _create_metrics(
+        names: Sequence[str],
+        threshold: float = 0.5,
+    ) -> CombinedMetrics:
+        """Instantiate registered streaming metrics with a shared threshold."""
+        return CombinedMetrics(
+            [
+                Registry.get("MetricsBase", name)(threshold=threshold)
+                for name in names
+            ]
+        )
