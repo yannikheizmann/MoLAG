@@ -1,10 +1,43 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import StrEnum
 
 import numpy as np
 
 from molag.inference import AffinityPartition
+
+
+class GroupingFailureMode(StrEnum):
+    """Mutually exclusive scene-level grouping outcome."""
+
+    CORRECT = "correct"
+    FALSE_MERGE = "false_merge"
+    FALSE_SPLIT = "false_split"
+    SPURIOUS_BRIDGE = "spurious_bridge"
+    MIXED = "mixed"
+
+
+@dataclass(frozen=True)
+class TrackerAssessment:
+    """Recovery diagnostics for one real tracker in a predicted partition."""
+
+    tracker_id: int
+    n_leds: int
+    correct: bool
+    has_merge: bool
+    has_split: bool
+    component_id: int | None
+
+    @property
+    def failure_mode(self) -> GroupingFailureMode:
+        if self.correct:
+            return GroupingFailureMode.CORRECT
+        if self.has_merge and self.has_split:
+            return GroupingFailureMode.MIXED
+        if self.has_merge:
+            return GroupingFailureMode.FALSE_MERGE
+        return GroupingFailureMode.FALSE_SPLIT
 
 
 @dataclass(frozen=True)
@@ -18,6 +51,8 @@ class PartitionAssessment:
     spurious_bridge: bool
     partition: AffinityPartition
     real_only_partition: AffinityPartition
+    trackers: tuple[TrackerAssessment, ...]
+    n_spurious: int
 
     @classmethod
     def from_graph(
@@ -44,6 +79,7 @@ class PartitionAssessment:
             labels,
             real_only_partition,
         )
+        trackers = cls._assess_trackers(labels, partition)
         return cls(
             correct=not has_merge and not has_split,
             real_only_correct=not real_only_merge and not real_only_split,
@@ -52,7 +88,76 @@ class PartitionAssessment:
             spurious_bridge=has_merge and not real_only_merge,
             partition=partition,
             real_only_partition=real_only_partition,
+            trackers=trackers,
+            n_spurious=int((labels < 0).sum()),
         )
+
+    @property
+    def failure_mode(self) -> GroupingFailureMode:
+        if self.correct:
+            return GroupingFailureMode.CORRECT
+        if self.has_real_merge and self.has_real_split:
+            return GroupingFailureMode.MIXED
+        if self.spurious_bridge:
+            return GroupingFailureMode.SPURIOUS_BRIDGE
+        if self.has_real_merge:
+            return GroupingFailureMode.FALSE_MERGE
+        return GroupingFailureMode.FALSE_SPLIT
+
+    @property
+    def n_trackers(self) -> int:
+        return len(self.trackers)
+
+    @property
+    def n_trackers_correct(self) -> int:
+        return sum(int(tracker.correct) for tracker in self.trackers)
+
+    def complete_tracker_counts(self, num_leds: int) -> tuple[int, int, int]:
+        """Return complete, strictly recovered, and extractable tracker counts."""
+        if num_leds < 1:
+            raise ValueError("num_leds must be positive")
+        complete = [tracker for tracker in self.trackers if tracker.n_leds == num_leds]
+        recovered = sum(int(tracker.correct) for tracker in complete)
+        extractable = len(
+            {
+                tracker.component_id
+                for tracker in complete
+                if tracker.component_id is not None
+            }
+        )
+        return len(complete), recovered, extractable
+
+    @staticmethod
+    def _assess_trackers(
+        labels: np.ndarray,
+        partition: AffinityPartition,
+    ) -> tuple[TrackerAssessment, ...]:
+        real = labels >= 0
+        assessments: list[TrackerAssessment] = []
+        for tracker_id in np.unique(labels[real]):
+            nodes = np.flatnonzero(labels == tracker_id)
+            component_ids = np.unique(partition.component_ids[nodes])
+            has_split = component_ids.size > 1
+            has_merge = any(
+                np.unique(
+                    labels[(partition.component_ids == component_id) & real]
+                ).size
+                > 1
+                for component_id in component_ids
+            )
+            assessments.append(
+                TrackerAssessment(
+                    tracker_id=int(tracker_id),
+                    n_leds=int(nodes.size),
+                    correct=not has_split and not has_merge,
+                    has_merge=has_merge,
+                    has_split=has_split,
+                    component_id=(
+                        None if has_split else int(component_ids.item())
+                    ),
+                )
+            )
+        return tuple(assessments)
 
     @staticmethod
     def _real_failures(
