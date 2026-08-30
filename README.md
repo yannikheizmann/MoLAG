@@ -170,4 +170,11 @@ uv run --frozen --extra dev pytest
 
 ## Citation
 
-Citation metadata will be added with the archival paper record.
+If you use MoLAG in academic work, please cite the software and accompanying
+manuscript using the metadata in [`CITATION.cff`](CITATION.cff). The citation metadata
+will be updated with the final author list and archival DOI when those are available.
+
+## License
+
+MoLAG is available under the Apache License 2.0. See [`LICENSE`](LICENSE) and
+[`NOTICE`](NOTICE) for the license and attribution terms.
