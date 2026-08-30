@@ -11,6 +11,7 @@ from torch import Tensor
 from molag.config import CALIBRATION_RESULT_FILENAME
 from molag.dataset import PyGTrackingAffinityCollator
 from molag.model.gnn.blocks import upper_tri_mask
+from molag.utils import resolve_device
 
 from ._partition import AffinityPartition
 
@@ -35,19 +36,19 @@ class MoLAGPredictor:
         self,
         model,
         threshold: float,
-        device: str | torch.device = "cpu",
+        device: str | torch.device | None = "auto",
     ) -> None:
         if not 0 < threshold < 1:
             raise ValueError("threshold must lie strictly between 0 and 1")
         self._model = model
         self._threshold = threshold
-        self._device = torch.device(device)
+        self._device = resolve_device(device)
 
     @classmethod
     def from_run_directory(
         cls,
         run_directory: str | Path,
-        device: str | torch.device = "cpu",
+        device: str | torch.device | None = "auto",
     ) -> MoLAGPredictor:
         """Load a model and its calibrated threshold from one run directory."""
         from molag.evaluation import ModelLoader

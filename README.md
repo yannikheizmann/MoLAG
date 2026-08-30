@@ -103,7 +103,6 @@ from molag.inference import MoLAGPredictor
 
 predictor = MoLAGPredictor.from_run_directory(
     "results",
-    device="cuda",
 )
 
 coordinates = np.array(

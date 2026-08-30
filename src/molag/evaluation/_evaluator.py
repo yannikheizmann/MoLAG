@@ -8,6 +8,7 @@ import torch
 from torch.utils.data import DataLoader, Dataset
 
 from molag.model.gnn.blocks import upper_tri_mask
+from molag.utils import resolve_device
 
 from .metrics import MetricsBase
 from ._predictions import PredictionCache, ScenePrediction
@@ -28,7 +29,7 @@ class Evaluator:
     ) -> None:
         self._model = model
         self._metrics = metrics
-        self._device = torch.device(device)
+        self._device = resolve_device(device)
         self._loader = DataLoader(
             dataset,
             batch_size=batch_size,

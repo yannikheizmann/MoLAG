@@ -4,7 +4,7 @@ evaluation_args:
   calibration_dataset: evaluation/molag_calibration_1_to_10_5k_seed7000000.yaml
   batch_size: 128
   dataloader_num_workers: 0
-  device: cuda
+  device: auto
   metrics:
     - Affinity
     - Partition

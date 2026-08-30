@@ -33,9 +33,12 @@ class EvaluationArgs(AdditionalArgsBase):
         description="Worker processes used to load frozen scenes.",
     )
     device: str = Field(
-        default="cpu",
+        default="auto",
         min_length=1,
-        description="Torch device used for model inference.",
+        description=(
+            "Torch device used for model inference. 'auto' selects CUDA, MPS, "
+            "or CPU in that order."
+        ),
     )
     threshold: float | None = Field(
         default=None,

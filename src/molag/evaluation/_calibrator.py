@@ -6,6 +6,8 @@ from typing import Callable
 import torch
 from torch.utils.data import DataLoader, Dataset
 
+from molag.utils import resolve_device
+
 from .metrics import MetricsBase
 
 
@@ -37,7 +39,7 @@ class ThresholdCalibrator:
         if not thresholds:
             raise ValueError("thresholds must contain at least one value")
         self._model = model
-        self._device = torch.device(device)
+        self._device = resolve_device(device)
         self._objective = objective
         self._metrics = {
             threshold: metric_factory(threshold) for threshold in thresholds

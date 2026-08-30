@@ -7,6 +7,7 @@ import yaml
 
 from molag.config import Args
 from molag.model import MoLAGModel
+from molag.utils import resolve_device
 
 
 class ModelLoader:
@@ -22,15 +23,16 @@ class ModelLoader:
     def from_run_directory(
         cls,
         run_directory: str | Path,
-        device: str | torch.device = "cpu",
+        device: str | torch.device | None = "auto",
     ) -> MoLAGModel:
         run_path = Path(run_directory)
         args = cls._load_args(run_path / "config.yaml")
         checkpoint = cls.find_checkpoint(run_path)
 
         model = MoLAGModel(args.model_args, args.loss_args)
-        model.load_local(checkpoint, map_location=device)
-        model.to(device)
+        resolved_device = resolve_device(device)
+        model.load_local(checkpoint, map_location="cpu")
+        model.to(resolved_device)
         model.eval()
         return model
 
