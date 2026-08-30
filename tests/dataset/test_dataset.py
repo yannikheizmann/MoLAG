@@ -1,3 +1,5 @@
+import hashlib
+
 import numpy as np
 import pytest
 import torch
@@ -78,6 +80,37 @@ def test_generation_is_deterministic_by_seed_and_index() -> None:
         assert torch.equal(first[index]["y"], second[index]["y"])
 
 
+@pytest.mark.parametrize(
+    ("seed", "expected_hash"),
+    [
+        (0, "ea93c7369fe8b0e8f4fca56ec79c473aad3b0ea65987c673bc8709cd76dff193"),
+        (42, "5b1fdef8baa77c7b8428ff86522d58e586b726d9bb02d4ff9a406ea6261a22ae"),
+        (4_999_999, "4421981d2fd13bf745027a344a1bdf7a12d33e95335ea6790d9861d8be2c1541"),
+        (5_000_000, "e4010fce5c757f71b12697c6018e67bd49261f96214a3f5558c432bc34886320"),
+        (7_000_000, "71b167f609b3672bb1e7e6584a89deac551db8e88e2294799c2d15db017e768b"),
+        (
+            10_000_000,
+            "32f343cff39b5b13f8eb2672ad049dffa8877bbeb66a9d3caa6f9321574403af",
+        ),
+    ],
+)
+def test_standard_profile_matches_paper_seed_outputs(
+    seed: int,
+    expected_hash: str,
+) -> None:
+    profile = DatasetConfig.from_yaml(
+        "src/molag/dataset/profiles/molag_standard.yaml"
+    )
+    sample = TrackingDataset.from_config(
+        profile.model_copy(update={"size": 1, "seed": seed})
+    )[0]
+    digest = hashlib.sha256()
+    digest.update(sample["x"].numpy().tobytes())
+    digest.update(sample["y"].numpy().tobytes())
+
+    assert digest.hexdigest() == expected_hash
+
+
 def test_exhausted_occlusion_filter_returns_warning(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -132,7 +165,9 @@ def test_dropout_and_noise_are_applied() -> None:
     modified_item = TrackingDataset.from_config(modified)[0]
 
     assert len(modified_item["x"]) < len(clean_item["x"])
-    assert not torch.equal(modified_item["x"], clean_item["x"][: len(modified_item["x"])])
+    assert not torch.equal(
+        modified_item["x"], clean_item["x"][: len(modified_item["x"])]
+    )
 
 
 @pytest.mark.parametrize(

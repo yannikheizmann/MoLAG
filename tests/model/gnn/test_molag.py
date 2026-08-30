@@ -39,6 +39,12 @@ def test_architecture_uses_configured_dimensions() -> None:
     assert model.edge_mlp[0].out_features == 6
 
 
+def test_default_architecture_matches_paper_parameter_count() -> None:
+    model = MoLAGModel(ModelArgs())
+
+    assert sum(parameter.numel() for parameter in model.parameters()) == 30_856_193
+
+
 def test_forward_returns_one_logit_per_unordered_pair() -> None:
     model = small_model()
     batch = sample_batch()

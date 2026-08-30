@@ -259,6 +259,109 @@ def test_spurious_bridge_component_penalizes_only_cross_tracker_paths() -> None:
     assert connected_loss > disconnected_loss
 
 
+def test_paper_loss_matches_reference_value_and_gradients() -> None:
+    torch.manual_seed(3)
+    tracker_labels = torch.tensor(
+        [0, 0, 0, 1, 1, -1, -1, 0, 0, 1, 1, 1, -1]
+    )
+    batch_vec = torch.tensor([0] * 7 + [1] * 6)
+    edges = []
+    for scene in range(2):
+        indices = (batch_vec == scene).nonzero().flatten().tolist()
+        edges.extend(
+            (left, right)
+            for position, left in enumerate(indices)
+            for right in indices[position + 1 :]
+        )
+    edge_index = torch.tensor(edges).T
+    logits = torch.randn(len(edges), requires_grad=True)
+    embeddings = torch.randn(len(tracker_labels), 11, requires_grad=True)
+    loss_fn = ScaledConjunctionAffinityLoss(
+        supcon_weight=0.03,
+        supcon_temperature=0.2,
+        connectivity_weight=1.0,
+        connectivity_margin=1.0,
+        separation_weight=0.46,
+        separation_margin=1.0,
+        spurious_bridge_weight=0.25,
+        spurious_margin=0.0,
+        max_tracker_nodes=7,
+        aggregation_beta=1.0,
+        delta_nontree=3.0,
+        eps_spur=0.01,
+        conjunct_scaling_power=0.5,
+        separation_scaling_power=None,
+        eligible_scene_mean=True,
+    )
+
+    loss = loss_fn(
+        edge_logits=logits,
+        edge_labels=torch.zeros_like(logits),
+        node_embeddings=embeddings,
+        tracker_labels=tracker_labels,
+        batch_vec=batch_vec,
+        edge_index=edge_index,
+        n_scenes=2,
+    )
+    loss.backward()
+
+    assert float(loss.detach()) == pytest.approx(2.3297815322875977)
+    torch.testing.assert_close(
+        logits.grad,
+        torch.tensor(
+            [
+                -0.011156992986798286,
+                -0.14482709765434265,
+                0.012857330963015556,
+                0.03018842823803425,
+                0.00022309250198304653,
+                8.787897240836173e-05,
+                -0.04105331003665924,
+                0.005692916922271252,
+                0.026688961312174797,
+                8.450166933471337e-05,
+                0.00015009116032160819,
+                0.02249673195183277,
+                0.07004114240407944,
+                0.0001407644886057824,
+                0.08016809076070786,
+                -0.22694985568523407,
+                0.0002837100182659924,
+                0.0004210810293443501,
+                0.00013058044714853168,
+                3.181809370289557e-05,
+                0.0,
+                -0.2630990743637085,
+                0.05229347199201584,
+                0.014292276464402676,
+                0.010293564759194851,
+                0.0006992859416641295,
+                0.036588337272405624,
+                0.028314167633652687,
+                0.01305979024618864,
+                0.00026666343910619617,
+                -0.10300479829311371,
+                -0.08772704005241394,
+                0.0004030045820400119,
+                -0.012702981941401958,
+                7.805336645105854e-05,
+                0.08088243752717972,
+            ]
+        ),
+    )
+    assert embeddings.grad is not None
+    assert float(embeddings.grad.abs().sum()) == pytest.approx(
+        0.21547284722328186
+    )
+    assert float(torch.linalg.vector_norm(embeddings.grad)) == pytest.approx(
+        0.027936430647969246
+    )
+    assert float(embeddings.grad.abs().max()) == pytest.approx(
+        0.009786822833120823
+    )
+    assert torch.count_nonzero(embeddings.grad[[5, 6, 12]]) == 0
+
+
 def test_spurious_bridge_gradient_targets_path_bottleneck() -> None:
     labels = torch.tensor([0, 1, -1, -1])
     logits = torch.full((6,), -5.0)
