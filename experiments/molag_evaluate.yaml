@@ -9,6 +9,7 @@ evaluation_args:
   device: auto
   metrics:
     - Affinity
+    - RealAffinity
     - Partition
   threshold_min: 0.05
   threshold_max: 0.95

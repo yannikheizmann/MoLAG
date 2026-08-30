@@ -1,12 +1,13 @@
 import numpy as np
 
-from molag.evaluation import AffinityMetrics, PartitionMetrics
+from molag.evaluation import AffinityMetrics, PartitionMetrics, RealAffinityMetrics
 from molag.utils.registry import Registry
 
 
 def test_metric_implementations_are_registered() -> None:
     assert Registry.get("MetricsBase", "Affinity") is AffinityMetrics
     assert Registry.get("MetricsBase", "Partition") is PartitionMetrics
+    assert Registry.get("MetricsBase", "RealAffinity") is RealAffinityMetrics
 
 
 def test_affinity_metrics_accumulate_across_updates() -> None:
@@ -94,3 +95,20 @@ def test_partition_metrics_report_spurious_attachment_separately() -> None:
 def test_empty_metrics_return_empty_mapping() -> None:
     assert AffinityMetrics().compute() == {}
     assert PartitionMetrics().compute() == {}
+
+
+def test_real_affinity_metrics_exclude_edges_touching_spurious_nodes() -> None:
+    metrics = RealAffinityMetrics()
+    metrics.update(
+        logits=np.array([2.0, 2.0, -2.0]),
+        labels=np.array([1, 0, 0]),
+        tracker_labels=np.array([0, 0, -1]),
+        edge_index=np.array([[0, 0, 1], [1, 2, 2]]),
+    )
+
+    assert metrics.compute() == {
+        "real_real_edge_accuracy": 1.0,
+        "real_real_edge_precision": 1.0,
+        "real_real_edge_recall": 1.0,
+        "real_real_edge_f1": 1.0,
+    }

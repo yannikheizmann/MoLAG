@@ -60,7 +60,7 @@ class EvaluationArgs(AdditionalArgsBase):
         ),
     )
     metrics: list[str] = Field(
-        default_factory=lambda: ["Affinity", "Partition"],
+        default_factory=lambda: ["Affinity", "RealAffinity", "Partition"],
         min_length=1,
         description="Registered streaming metrics evaluated in one pass.",
     )

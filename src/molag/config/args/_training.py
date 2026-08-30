@@ -151,6 +151,10 @@ class TrainingArgs(AdditionalArgsBase):
             "edge_precision": "Affinity",
             "edge_recall": "Affinity",
             "edge_f1": "Affinity",
+            "real_real_edge_accuracy": "RealAffinity",
+            "real_real_edge_precision": "RealAffinity",
+            "real_real_edge_recall": "RealAffinity",
+            "real_real_edge_f1": "RealAffinity",
             "partition_accuracy": "Partition",
         }.get(self.metric_for_best_model)
         if required_metric is not None and required_metric not in self.training_metrics:

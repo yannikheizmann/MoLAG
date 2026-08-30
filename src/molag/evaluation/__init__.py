@@ -16,6 +16,7 @@ from .metrics import (
     CombinedMetrics,
     MetricsBase,
     PartitionMetrics,
+    RealAffinityMetrics,
 )
 
 __all__ = [
@@ -32,6 +33,7 @@ __all__ = [
     "PartitionAssessment",
     "PartitionMetrics",
     "PredictionCache",
+    "RealAffinityMetrics",
     "ScenePrediction",
     "ThresholdCalibrator",
     "TrackerAssessment",

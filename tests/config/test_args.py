@@ -49,6 +49,11 @@ def test_molag_defaults() -> None:
     assert args.training_args.training_metrics == ["Affinity"]
     assert args.evaluation_args.hub_model_id is None
     assert args.evaluation_args.hub_revision is None
+    assert args.evaluation_args.metrics == [
+        "Affinity",
+        "RealAffinity",
+        "Partition",
+    ]
 
 
 def test_enabled_hub_requires_repository() -> None:
@@ -194,7 +199,7 @@ def test_evaluation_experiment_uses_calibration_artifact() -> None:
         "evaluation/molag_calibration_1_to_10_5k_seed7000000.yaml"
     )
     assert evaluation.threshold is None
-    assert evaluation.metrics == ["Affinity", "Partition"]
+    assert evaluation.metrics == ["Affinity", "RealAffinity", "Partition"]
     assert evaluation.threshold_min == 0.05
     assert evaluation.threshold_max == 0.95
     assert evaluation.threshold_step == 0.01
