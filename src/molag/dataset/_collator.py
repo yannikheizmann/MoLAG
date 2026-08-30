@@ -35,14 +35,11 @@ class PyGTrackingAffinityCollator:
             labels = sample["y"]
             self._validate_sample(coordinates, labels)
 
-            edge_index = full_edge_index(coordinates.shape[0])
-            graphs.append(Data(x=coordinates, edge_index=edge_index))
+            graphs.append(self.build_graph(coordinates))
             tracker_labels_per_graph.append(labels[:, 0])
             led_labels_per_graph.append(labels[:, 1])
 
         batch = Batch.from_data_list(graphs)
-        batch.edge_attr = self._get_edge_features(batch.x, batch.edge_index)
-
         tracker_labels = torch.cat(tracker_labels_per_graph).long()
         led_labels = torch.cat(led_labels_per_graph).long()
         source, destination = batch.edge_index[:, upper_tri_mask(batch.edge_index)]
@@ -60,13 +57,32 @@ class PyGTrackingAffinityCollator:
             "labels": edge_labels,
         }
 
+    @classmethod
+    def build_graph(cls, coordinates: Tensor) -> Data:
+        """Build the complete geometric graph used by MoLAG."""
+        cls._validate_coordinates(coordinates)
+        edge_index = full_edge_index(coordinates.shape[0])
+        return Data(
+            x=coordinates,
+            edge_index=edge_index,
+            edge_attr=cls._get_edge_features(coordinates, edge_index),
+        )
+
     @staticmethod
     def _validate_sample(coordinates: Any, labels: Any) -> None:
         if not isinstance(coordinates, Tensor) or not isinstance(labels, Tensor):
             raise TypeError("sample x and y values must be torch tensors")
-        if coordinates.ndim != 2 or coordinates.shape[1] != 2:
-            raise ValueError("sample x must have shape (num_nodes, 2)")
+        PyGTrackingAffinityCollator._validate_coordinates(coordinates)
         if labels.ndim != 2 or labels.shape != coordinates.shape:
             raise ValueError("sample y must have shape (num_nodes, 2)")
+
+    @staticmethod
+    def _validate_coordinates(coordinates: Any) -> None:
+        if not isinstance(coordinates, Tensor):
+            raise TypeError("coordinates must be a torch tensor")
+        if coordinates.ndim != 2 or coordinates.shape[1] != 2:
+            raise ValueError("coordinates must have shape (num_nodes, 2)")
         if coordinates.shape[0] == 0:
-            raise ValueError("samples must contain at least one node")
+            raise ValueError("coordinates must contain at least one node")
+        if not torch.isfinite(coordinates).all():
+            raise ValueError("coordinates must contain only finite values")
