@@ -3,8 +3,8 @@ from pathlib import Path
 import yaml
 
 from molag.config import Args, DatasetArgs, LossArgs, ModelArgs, TrainingArgs
-from molag.main import Main
 from molag.evaluation import CombinedMetrics
+from molag.main import Main
 
 
 class TrainerStub:

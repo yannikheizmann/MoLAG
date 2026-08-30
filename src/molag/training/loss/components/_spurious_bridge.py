@@ -20,7 +20,11 @@ class SpuriousBridgeLossComponent(AffinityLossComponentBase):
         real_spurious_edges = context.edge_categories.spurious_real.nonzero(
             as_tuple=True
         )[0]
-        if real_spurious_edges.numel() == 0 or spurious_nodes.numel() == 0 or n_groups < 2:
+        if (
+            real_spurious_edges.numel() == 0
+            or spurious_nodes.numel() == 0
+            or n_groups < 2
+        ):
             return context.zero
 
         group_counts = torch.bincount(

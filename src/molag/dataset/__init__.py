@@ -1,7 +1,7 @@
 """Synthetic coordinate-set generation for MoLAG."""
 
-from ._config import DatasetConfig, PoseConfig
 from ._collator import PyGTrackingAffinityCollator
+from ._config import DatasetConfig, PoseConfig
 from ._dataset import TrackingDataset
 from ._eval_dataset import EvalDataset, EvalSample
 from .modifiers import (

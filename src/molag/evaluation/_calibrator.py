@@ -3,8 +3,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Callable
 
-from .metrics import MetricsBase
 from molag.inference import PredictionCache
+
+from .metrics import MetricsBase
 
 
 @dataclass(frozen=True)

@@ -96,16 +96,6 @@ def test_calibrator_supports_affinity_metric_objectives() -> None:
 
 
 def test_calibrator_requires_thresholds() -> None:
-    dataset = EvalDataset(
-        name="empty",
-        profile="profile.yaml",
-        size=1,
-        seed=0,
-        created_at="2026-01-01T00:00:00+00:00",
-        candidate_seed_ranges=[[0, 0]],
-        samples=[EvalSample(x=[[0.0, 0.0]], y=[[0, 0]])],
-    )
-
     with pytest.raises(ValueError, match="at least one"):
         ThresholdCalibrator(
             metric_factory=lambda threshold: PartitionMetrics(threshold),

@@ -64,7 +64,9 @@ class PredictionGenerator:
 
         scenes = []
         for index in range(data.num_graphs):
-            node_start, node_stop = (int(value) for value in pointers[index : index + 2])
+            node_start, node_stop = (
+                int(value) for value in pointers[index : index + 2]
+            )
             edge_mask = (pair_edges[0] >= node_start) & (pair_edges[0] < node_stop)
             scenes.append(
                 ScenePrediction(

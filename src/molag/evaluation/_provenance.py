@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
 import hashlib
-from importlib.metadata import PackageNotFoundError, version
-from pathlib import Path
 import platform
 import subprocess
+from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
+from importlib.metadata import PackageNotFoundError, version
+from pathlib import Path
 from typing import Any
 
 from torch import nn

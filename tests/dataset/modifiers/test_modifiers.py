@@ -46,7 +46,9 @@ def test_dropout_does_not_remove_spurious_points() -> None:
         x, y, np.random.default_rng(0)
     )
 
-    np.testing.assert_array_equal(np.sort(modified_y[modified_y[:, 0] < 0, 0]), [-2, -1])
+    np.testing.assert_array_equal(
+        np.sort(modified_y[modified_y[:, 0] < 0, 0]), [-2, -1]
+    )
 
 
 def test_spurious_points_have_unique_negative_ids_inside_bounding_box() -> None:

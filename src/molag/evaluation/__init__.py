@@ -1,5 +1,7 @@
 """Evaluation of MoLAG predictions."""
 
+from molag.inference import PredictionCache, PredictionGenerator, ScenePrediction
+
 from ._assessment import (
     GroupingFailureMode,
     PartitionAssessment,
@@ -8,7 +10,6 @@ from ._assessment import (
 from ._calibrator import CalibrationResult, ThresholdCalibrator
 from ._evaluator import Evaluator
 from ._loader import ModelLoader
-from molag.inference import PredictionCache, PredictionGenerator, ScenePrediction
 from ._provenance import EvaluationProvenance, FileFingerprint
 from ._result import EvaluationResult
 from .metrics import (

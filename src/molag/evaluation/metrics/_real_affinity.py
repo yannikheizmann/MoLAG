@@ -19,7 +19,9 @@ class RealAffinityMetrics(AffinityMetrics):
             edge_index = np.asarray(values["edge_index"], dtype=np.int64)
         else:
             data = inputs["data"]
-            edge_index = data.edge_index[:, upper_tri_mask(data.edge_index)].cpu().numpy()
+            edge_index = data.edge_index[
+                :, upper_tri_mask(data.edge_index)
+            ].cpu().numpy()
             tracker_labels = inputs["tracker_labels"].detach().cpu().numpy()
         if edge_index.shape != (2, logits.size):
             raise ValueError("edge_index must match the unordered affinity logits")

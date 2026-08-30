@@ -11,7 +11,10 @@ def test_sample_uses_registered_tracker_implementation() -> None:
 
     sample = Sample(3, TrackerClass, np.random.default_rng(42))
 
-    assert all(isinstance(tracker, TriangularTracker) for tracker in sample.get_trackers())
+    assert all(
+        isinstance(tracker, TriangularTracker)
+        for tracker in sample.get_trackers()
+    )
 
 
 def test_tracker_codes_are_unique_within_scene() -> None:

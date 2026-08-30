@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+
 import torch
 from torch import Tensor
 
@@ -67,9 +68,9 @@ def maximum_spanning_forest(
     sorted_nodes = real_nodes[order]
     sorted_groups = inverse[order]
     starts = torch.cumsum(group_sizes, dim=0) - group_sizes
-    local_positions = torch.arange(real_nodes.numel(), device=device) - torch.repeat_interleave(
-        starts, group_sizes
-    )
+    local_positions = torch.arange(
+        real_nodes.numel(), device=device
+    ) - torch.repeat_interleave(starts, group_sizes)
 
     node_group = torch.full((n_nodes,), -1, dtype=torch.long, device=device)
     node_local = torch.full((n_nodes,), -1, dtype=torch.long, device=device)
@@ -119,7 +120,9 @@ def maximum_spanning_forest(
             & valid_nodes.unsqueeze(1)
             & (source_edges >= 0)
         )
-        choices = flat_scores.masked_fill(~candidates.view(n_groups, -1), float("-inf")).argmax(1)
+        choices = flat_scores.masked_fill(
+            ~candidates.view(n_groups, -1), float("-inf")
+        ).argmax(1)
         chosen_edges = flat_sources[group_range, choices]
         selected_edges.append(torch.where(active, chosen_edges, -1))
         selected_groups.append(torch.where(active, group_range, -1))
@@ -149,5 +152,4 @@ def maximum_spanning_forest(
         group_sizes=group_sizes,
         node_group=node_group,
     )
-
 

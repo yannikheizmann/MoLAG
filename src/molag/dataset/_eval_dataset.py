@@ -1,15 +1,15 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import logging
-from pathlib import Path
 import random
+from datetime import datetime, timezone
+from pathlib import Path
 
 import numpy as np
 import torch
+import yaml
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from torch.utils.data import Dataset
-import yaml
 
 from ._config import DatasetConfig
 from ._dataset import TrackingDataset

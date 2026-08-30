@@ -10,6 +10,7 @@ from molag.utils.registry import RegistryMeta
 
 if TYPE_CHECKING:
     from molag.dataset import PoseConfig
+
     from ._pose import TrackerPose
 
 FloatArray = NDArray[np.float64]

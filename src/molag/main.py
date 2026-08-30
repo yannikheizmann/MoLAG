@@ -1,19 +1,19 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
 import json
 import logging
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Literal
 
 from molag.config import (
-    Args,
     CALIBRATION_PREDICTION_CACHE_FILENAME,
     CALIBRATION_RESULT_FILENAME,
     EVALUATION_RESULT_FILENAME,
+    PREDICTION_CACHE_FILENAME,
+    Args,
     EvalDatasetGenerationArgs,
     EvaluationArgs,
-    PREDICTION_CACHE_FILENAME,
 )
 from molag.dataset import (
     DatasetConfig,
@@ -23,14 +23,14 @@ from molag.dataset import (
 )
 from molag.evaluation import (
     CombinedMetrics,
-    Evaluator,
     EvaluationProvenance,
     EvaluationResult,
+    Evaluator,
     ModelLoader,
     ThresholdCalibrator,
 )
-from molag.model import MoLAGModel
 from molag.inference import PredictionCache, PredictionGenerator
+from molag.model import MoLAGModel
 from molag.training.trainer import Trainer
 from molag.utils.argparsing import ArgsParser
 from molag.utils.logging import setup_logging

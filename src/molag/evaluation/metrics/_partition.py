@@ -5,10 +5,9 @@ from typing import Any
 import numpy as np
 from torch_geometric.data import Batch
 
+from molag.evaluation._assessment import PartitionAssessment
 from molag.model.gnn.blocks import upper_tri_mask
 from molag.utils.statistics import clustered_ratio_interval, wilson_interval
-
-from molag.evaluation._assessment import PartitionAssessment
 
 from ._base import MetricsBase
 

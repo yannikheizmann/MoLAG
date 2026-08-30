@@ -141,7 +141,9 @@ class ArgsParser:
                 )
             key, raw_value = item.split("=", 1)
             if not key:
-                raise argparse.ArgumentTypeError("Nested argument keys cannot be empty.")
+                raise argparse.ArgumentTypeError(
+                    "Nested argument keys cannot be empty."
+                )
             try:
                 parsed[key] = ast.literal_eval(raw_value)
             except (SyntaxError, ValueError):
