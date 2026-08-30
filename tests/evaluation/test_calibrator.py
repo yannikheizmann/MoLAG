@@ -2,7 +2,12 @@ import pytest
 from torch import nn
 
 from molag.dataset import EvalDataset, EvalSample, PyGTrackingAffinityCollator
-from molag.evaluation import AffinityMetrics, PartitionMetrics, ThresholdCalibrator
+from molag.evaluation import (
+    AffinityMetrics,
+    PartitionMetrics,
+    ThresholdCalibrator,
+)
+from molag.inference import PredictionGenerator
 from molag.model.gnn.blocks import upper_tri_mask
 
 
@@ -10,6 +15,16 @@ class PositiveEdgeModel(nn.Module):
     def forward(self, data):
         pair_count = int(upper_tri_mask(data.edge_index).sum())
         return {"edge_logits": data.x.new_full((pair_count,), 100.0)}
+
+
+def predictions(dataset: EvalDataset):
+    return PredictionGenerator(
+        model=PositiveEdgeModel(),
+        dataset=dataset,
+        data_collator=PyGTrackingAffinityCollator(),
+        batch_size=1,
+        device="cpu",
+    ).predict()
 
 
 def test_calibrator_uses_higher_threshold_to_break_ties() -> None:
@@ -28,17 +43,12 @@ def test_calibrator_uses_higher_threshold_to_break_ties() -> None:
         ],
     )
     calibrator = ThresholdCalibrator(
-        model=PositiveEdgeModel(),
-        dataset=dataset,
-        data_collator=PyGTrackingAffinityCollator(),
         metric_factory=lambda threshold: PartitionMetrics(threshold),
         objective="partition_accuracy",
         thresholds=[0.2, 0.5, 0.8],
-        batch_size=1,
-        device="cpu",
     )
 
-    result = calibrator.calibrate()
+    result = calibrator.calibrate(predictions(dataset))
 
     assert result.threshold == 0.8
     assert result.objective == "partition_accuracy"
@@ -67,17 +77,12 @@ def test_calibrator_supports_affinity_metric_objectives() -> None:
         ],
     )
     calibrator = ThresholdCalibrator(
-        model=PositiveEdgeModel(),
-        dataset=dataset,
-        data_collator=PyGTrackingAffinityCollator(),
         metric_factory=lambda threshold: AffinityMetrics(threshold),
         objective="edge_f1",
         thresholds=[0.5],
-        batch_size=1,
-        device="cpu",
     )
 
-    result = calibrator.calibrate()
+    result = calibrator.calibrate(predictions(dataset))
 
     assert result.threshold == 0.5
     assert result.objective == "edge_f1"
@@ -103,14 +108,9 @@ def test_calibrator_requires_thresholds() -> None:
 
     with pytest.raises(ValueError, match="at least one"):
         ThresholdCalibrator(
-            model=PositiveEdgeModel(),
-            dataset=dataset,
-            data_collator=PyGTrackingAffinityCollator(),
             metric_factory=lambda threshold: PartitionMetrics(threshold),
             objective="partition_accuracy",
             thresholds=[],
-            batch_size=1,
-            device="cpu",
         )
 
 
@@ -125,15 +125,10 @@ def test_calibrator_rejects_objective_not_provided_by_metric() -> None:
         samples=[EvalSample(x=[[0.0, 0.0]], y=[[0, 0]])],
     )
     calibrator = ThresholdCalibrator(
-        model=PositiveEdgeModel(),
-        dataset=dataset,
-        data_collator=PyGTrackingAffinityCollator(),
         metric_factory=lambda threshold: PartitionMetrics(threshold),
         objective="edge_f1",
         thresholds=[0.5],
-        batch_size=1,
-        device="cpu",
     )
 
     with pytest.raises(ValueError, match="does not provide objective 'edge_f1'"):
-        calibrator.calibrate()
+        calibrator.calibrate(predictions(dataset))

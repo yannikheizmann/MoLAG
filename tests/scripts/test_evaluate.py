@@ -11,7 +11,7 @@ from molag.config import (
     TrainingArgs,
 )
 from molag.dataset import EvalDataset, EvalSample
-from molag.evaluation import PredictionCache
+from molag.inference import PredictionCache
 from molag.main import Main
 from molag.model import MoLAGModel
 from molag.model.gnn.blocks import upper_tri_mask
@@ -116,6 +116,13 @@ def test_evaluate_calibrates_before_test_evaluation(
     evaluation = json.loads((run_directory / "evaluation.json").read_text())
     assert calibration["threshold"] == 0.7
     assert len(calibration["results"]) == 3
+    calibration_predictions = PredictionCache.from_npz(
+        run_directory / "calibration_predictions.npz"
+    )
+    assert len(calibration_predictions) == 1
+    assert calibration["predictions"] == str(
+        run_directory / "calibration_predictions.npz"
+    )
     assert evaluation["threshold"] == 0.7
     assert evaluation["calibration"] == str(run_directory / "calibration.json")
     assert evaluation["metrics"] == metrics

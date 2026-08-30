@@ -24,12 +24,14 @@ def test_evaluation_provenance_fingerprints_all_inputs(tmp_path: Path) -> None:
     dataset = tmp_path / "dataset.yaml"
     predictions = run_directory / "predictions.npz"
     calibration = run_directory / "calibration.json"
+    calibration_predictions = run_directory / "calibration_predictions.npz"
     for path in (
         configuration,
         checkpoint,
         dataset,
         predictions,
         calibration,
+        calibration_predictions,
     ):
         path.write_text(path.name)
 
@@ -38,6 +40,7 @@ def test_evaluation_provenance_fingerprints_all_inputs(tmp_path: Path) -> None:
         dataset=dataset,
         predictions=predictions,
         calibration=calibration,
+        calibration_predictions=calibration_predictions,
         model=nn.Linear(2, 3),
     )
 
@@ -47,6 +50,7 @@ def test_evaluation_provenance_fingerprints_all_inputs(tmp_path: Path) -> None:
         "dataset",
         "predictions",
         "calibration",
+        "calibration_predictions",
     }
     assert result.model_parameters == 9
     assert result.trainable_model_parameters == 9

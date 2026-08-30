@@ -8,7 +8,7 @@ from ._assessment import (
 from ._calibrator import CalibrationResult, ThresholdCalibrator
 from ._evaluator import Evaluator
 from ._loader import ModelLoader
-from ._predictions import PredictionCache, ScenePrediction
+from molag.inference import PredictionCache, PredictionGenerator, ScenePrediction
 from ._provenance import EvaluationProvenance, FileFingerprint
 from ._result import EvaluationResult
 from .metrics import (
@@ -33,6 +33,7 @@ __all__ = [
     "PartitionAssessment",
     "PartitionMetrics",
     "PredictionCache",
+    "PredictionGenerator",
     "RealAffinityMetrics",
     "ScenePrediction",
     "ThresholdCalibrator",

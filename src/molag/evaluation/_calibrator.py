@@ -3,12 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Callable
 
-import torch
-from torch.utils.data import DataLoader, Dataset
-
-from molag.utils import resolve_device
-
 from .metrics import MetricsBase
+from molag.inference import PredictionCache
 
 
 @dataclass(frozen=True)
@@ -26,47 +22,31 @@ class ThresholdCalibrator:
 
     def __init__(
         self,
-        model,
-        dataset: Dataset,
-        data_collator: Callable,
         metric_factory: Callable[[float], MetricsBase],
         objective: str,
         thresholds: list[float],
-        batch_size: int,
-        device: str | torch.device,
-        dataloader_num_workers: int = 0,
     ) -> None:
         if not thresholds:
             raise ValueError("thresholds must contain at least one value")
-        self._model = model
-        self._device = resolve_device(device)
         self._objective = objective
         self._metrics = {
             threshold: metric_factory(threshold) for threshold in thresholds
         }
-        self._loader = DataLoader(
-            dataset,
-            batch_size=batch_size,
-            num_workers=dataloader_num_workers,
-            collate_fn=data_collator,
-        )
 
-    def calibrate(self) -> CalibrationResult:
-        self._model.to(self._device)
-        self._model.eval()
+    def calibrate(self, predictions: PredictionCache) -> CalibrationResult:
+        """Select a threshold entirely from reusable cached predictions."""
         for metric in self._metrics.values():
             metric.reset()
-
-        with torch.inference_mode():
-            for inputs in self._loader:
-                outputs = self._model(data=inputs["data"].to(self._device))
-                values = {
-                    "logits": outputs["edge_logits"].detach().float().cpu().numpy(),
-                    "labels": inputs["edge_labels"].cpu().numpy(),
-                    "inputs": inputs,
-                }
-                for metric in self._metrics.values():
-                    metric.update(**values)
+        for scene in predictions:
+            values = {
+                "logits": scene.edge_logits,
+                "labels": scene.edge_labels,
+                "tracker_labels": scene.point_labels[:, 0],
+                "edge_index": scene.edge_index,
+                "coordinates": scene.coordinates,
+            }
+            for metric in self._metrics.values():
+                metric.update(**values)
 
         metrics_by_threshold: dict[float, dict[str, float]] = {}
         for threshold, metric in self._metrics.items():

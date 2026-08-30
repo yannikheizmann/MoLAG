@@ -3,12 +3,8 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from molag.evaluation import (
-    AffinityMetrics,
-    Evaluator,
-    PredictionCache,
-    ScenePrediction,
-)
+from molag.evaluation import AffinityMetrics, Evaluator
+from molag.inference import PredictionCache, ScenePrediction
 
 
 def make_scene(offset: float = 0.0) -> ScenePrediction:

@@ -54,6 +54,7 @@ class EvaluationProvenance:
         predictions: str | Path,
         model: nn.Module,
         calibration: str | Path | None = None,
+        calibration_predictions: str | Path | None = None,
         model_directory: str | Path | None = None,
     ) -> EvaluationProvenance:
         """Collect source, environment, model, and file identities."""
@@ -71,6 +72,10 @@ class EvaluationProvenance:
         }
         if calibration is not None:
             files["calibration"] = FileFingerprint.from_path(calibration)
+        if calibration_predictions is not None:
+            files["calibration_predictions"] = FileFingerprint.from_path(
+                calibration_predictions
+            )
         revision, dirty = cls._source_state()
         parameters = tuple(model.parameters())
         return cls(

@@ -8,6 +8,7 @@ from typing import Literal
 
 from molag.config import (
     Args,
+    CALIBRATION_PREDICTION_CACHE_FILENAME,
     CALIBRATION_RESULT_FILENAME,
     EVALUATION_RESULT_FILENAME,
     EvalDatasetGenerationArgs,
@@ -29,6 +30,7 @@ from molag.evaluation import (
     ThresholdCalibrator,
 )
 from molag.model import MoLAGModel
+from molag.inference import PredictionGenerator
 from molag.training.trainer import Trainer
 from molag.utils.argparsing import ArgsParser
 from molag.utils.logging import setup_logging
@@ -150,6 +152,11 @@ class Main:
                 if calibration is not None
                 else None
             ),
+            calibration_predictions=(
+                args.run_directory / CALIBRATION_PREDICTION_CACHE_FILENAME
+                if calibration is not None
+                else None
+            ),
         )
         Main._save_evaluation_result(
             args,
@@ -242,6 +249,17 @@ class Main:
     def _calibrate(args: EvaluationArgs, model) -> dict:
         """Calibrate the grouping threshold on frozen scenes."""
         dataset = EvalDataset.from_yaml(args.calibration_dataset)
+        predictions = PredictionGenerator(
+            model=model,
+            dataset=dataset,
+            data_collator=PyGTrackingAffinityCollator(),
+            batch_size=args.batch_size,
+            device=args.device,
+            dataloader_num_workers=args.dataloader_num_workers,
+        ).predict()
+        prediction_path = predictions.to_npz(
+            args.run_directory / CALIBRATION_PREDICTION_CACHE_FILENAME
+        )
         steps = round(
             (args.threshold_max - args.threshold_min) / args.threshold_step
         )
@@ -250,23 +268,18 @@ class Main:
             for index in range(steps + 1)
         ]
         result = ThresholdCalibrator(
-            model=model,
-            dataset=dataset,
-            data_collator=PyGTrackingAffinityCollator(),
             metric_factory=lambda threshold: Main._create_metrics(
                 args.metrics, threshold
             ),
             objective=args.objective,
             thresholds=thresholds,
-            batch_size=args.batch_size,
-            device=args.device,
-            dataloader_num_workers=args.dataloader_num_workers,
-        ).calibrate()
+        ).calibrate(predictions)
         payload = {
             "run_directory": str(args.run_directory),
             "dataset": str(args.calibration_dataset),
             "dataset_name": dataset.name,
             "candidate_seed_ranges": dataset.candidate_seed_ranges,
+            "predictions": str(prediction_path),
             "metrics": args.metrics,
             "objective": result.objective,
             "threshold": result.threshold,

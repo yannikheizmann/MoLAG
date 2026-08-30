@@ -10,9 +10,9 @@ from torch import Tensor
 
 from molag.config import CALIBRATION_RESULT_FILENAME
 from molag.dataset import PyGTrackingAffinityCollator
-from molag.model.gnn.blocks import upper_tri_mask
 from molag.utils import resolve_device
 
+from ._generator import PredictionGenerator
 from ._partition import AffinityPartition
 
 
@@ -95,15 +95,16 @@ class MoLAGPredictor:
         """Predict affinities and candidate groups for localised image points."""
         tensor = torch.as_tensor(coordinates, dtype=torch.float32)
         tensor = self._normalize_coordinates(tensor)
-        graph = PyGTrackingAffinityCollator.build_graph(tensor).to(self._device)
-        self._model.to(self._device)
-        self._model.eval()
-        with torch.inference_mode():
-            logits = self._model(data=graph)["edge_logits"]
-
-        pair_edges = graph.edge_index[:, upper_tri_mask(graph.edge_index)]
-        affinities = logits.sigmoid().detach().cpu().numpy()
-        edge_index = pair_edges.detach().cpu().numpy()
+        labels = torch.full((tensor.shape[0], 2), -1, dtype=torch.long)
+        prediction = PredictionGenerator(
+            model=self._model,
+            dataset=[{"x": tensor, "y": labels}],
+            data_collator=PyGTrackingAffinityCollator(),
+            batch_size=1,
+            device=self._device,
+        ).predict()[0]
+        affinities = torch.from_numpy(prediction.edge_logits).sigmoid().numpy()
+        edge_index = prediction.edge_index
         partition = AffinityPartition.from_graph(
             n_nodes=tensor.shape[0],
             edge_index=edge_index,
