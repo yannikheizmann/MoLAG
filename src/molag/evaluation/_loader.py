@@ -4,6 +4,7 @@ from pathlib import Path
 
 import torch
 import yaml
+from huggingface_hub import snapshot_download
 
 from molag.config import Args
 from molag.model import MoLAGModel
@@ -18,6 +19,37 @@ class ModelLoader:
         "pytorch_model.bin",
         "model.pt",
     )
+
+    @classmethod
+    def from_hub(
+        cls,
+        model_id: str,
+        revision: str | None = None,
+        token: str | bool | None = None,
+        cache_dir: str | Path | None = None,
+    ) -> Path:
+        """Download a model snapshot in the same layout as a local run."""
+        if not model_id.strip():
+            raise ValueError("model_id must not be empty")
+        snapshot = Path(
+            snapshot_download(
+                repo_id=model_id,
+                revision=revision,
+                token=token,
+                cache_dir=cache_dir,
+                allow_patterns=[
+                    "config.yaml",
+                    "model.safetensors",
+                    "pytorch_model.bin",
+                    "model.pt",
+                    "calibration.json",
+                    "dataset_profile.yaml",
+                ],
+            )
+        )
+        cls._load_args(snapshot / "config.yaml")
+        cls.find_checkpoint(snapshot)
+        return snapshot
 
     @classmethod
     def from_run_directory(

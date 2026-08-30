@@ -54,13 +54,17 @@ class EvaluationProvenance:
         predictions: str | Path,
         model: nn.Module,
         calibration: str | Path | None = None,
+        model_directory: str | Path | None = None,
     ) -> EvaluationProvenance:
         """Collect source, environment, model, and file identities."""
         run_path = Path(run_directory)
+        model_path = (
+            Path(model_directory) if model_directory is not None else run_path
+        )
         files = {
-            "configuration": FileFingerprint.from_path(run_path / "config.yaml"),
+            "configuration": FileFingerprint.from_path(model_path / "config.yaml"),
             "checkpoint": FileFingerprint.from_path(
-                ModelLoader.find_checkpoint(run_path)
+                ModelLoader.find_checkpoint(model_path)
             ),
             "dataset": FileFingerprint.from_path(dataset),
             "predictions": FileFingerprint.from_path(predictions),

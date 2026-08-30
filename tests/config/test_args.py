@@ -46,6 +46,8 @@ def test_molag_defaults() -> None:
     assert args.training_args.bf16 is True
     assert args.training_args.report_to == []
     assert args.training_args.push_to_hub is False
+    assert args.evaluation_args.hub_model_id is None
+    assert args.evaluation_args.hub_revision is None
 
 
 def test_enabled_hub_requires_repository() -> None:

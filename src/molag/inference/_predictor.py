@@ -73,6 +73,24 @@ class MoLAGPredictor:
             device=device,
         )
 
+    @classmethod
+    def from_hub(
+        cls,
+        model_id: str,
+        revision: str | None = None,
+        token: str | bool | None = None,
+        device: str | torch.device | None = "auto",
+    ) -> MoLAGPredictor:
+        """Load a model and calibration result from a Hugging Face repository."""
+        from molag.evaluation import ModelLoader
+
+        snapshot = ModelLoader.from_hub(
+            model_id=model_id,
+            revision=revision,
+            token=token,
+        )
+        return cls.from_run_directory(snapshot, device=device)
+
     def predict(self, coordinates: Tensor | np.ndarray) -> InferenceResult:
         """Predict affinities and candidate groups for localised image points."""
         tensor = torch.as_tensor(coordinates, dtype=torch.float32)

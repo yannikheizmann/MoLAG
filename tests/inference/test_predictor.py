@@ -48,6 +48,29 @@ def test_predictor_loads_threshold_from_run(monkeypatch, tmp_path) -> None:
     assert len(result.groups) == 1
 
 
+def test_predictor_loads_model_and_calibration_from_hub(
+    monkeypatch,
+    tmp_path,
+) -> None:
+    (tmp_path / "calibration.json").write_text(json.dumps({"threshold": 0.73}))
+    monkeypatch.setattr(
+        "molag.evaluation.ModelLoader.from_hub",
+        lambda *args, **kwargs: tmp_path,
+    )
+    monkeypatch.setattr(
+        "molag.evaluation.ModelLoader.from_run_directory",
+        lambda *args, **kwargs: PositiveEdgeModel(),
+    )
+
+    predictor = MoLAGPredictor.from_hub(
+        "organisation/model",
+        revision="paper",
+        device="cpu",
+    )
+
+    assert len(predictor.predict([[0.0, 0.0], [1.0, 0.0]]).groups) == 1
+
+
 def test_predictor_normalizes_raw_coordinates() -> None:
     model = RecordingModel()
     predictor = MoLAGPredictor(model, threshold=0.5)

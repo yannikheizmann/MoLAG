@@ -13,7 +13,20 @@ class EvaluationArgs(AdditionalArgsBase):
 
     run_directory: Path = Field(
         default=Path("results"),
-        description="Finetuning output containing config.yaml and model weights.",
+        description=(
+            "Directory receiving evaluation artifacts and, unless hub_model_id "
+            "is set, containing the local finetuning result."
+        ),
+    )
+    hub_model_id: str | None = Field(
+        default=None,
+        min_length=1,
+        description="Optional Hugging Face model repository in namespace/name form.",
+    )
+    hub_revision: str | None = Field(
+        default=None,
+        min_length=1,
+        description="Optional Hub branch, tag, or commit used for model loading.",
     )
     dataset: Path = Field(
         default=Path("evaluation/evaluation.yaml"),

@@ -108,7 +108,15 @@ class Main:
     @staticmethod
     def _evaluate(args: EvaluationArgs) -> dict[str, float]:
         """Calibrate and evaluate a finetuned model on frozen scenes."""
-        model = ModelLoader.from_run_directory(args.run_directory, args.device)
+        model_directory = (
+            ModelLoader.from_hub(
+                args.hub_model_id,
+                revision=args.hub_revision,
+            )
+            if args.hub_model_id is not None
+            else args.run_directory
+        )
+        model = ModelLoader.from_run_directory(model_directory, args.device)
         calibration = None
         if args.threshold is None:
             calibration = Main._calibrate(args, model)
@@ -139,6 +147,7 @@ class Main:
         breakdown = evaluator.breakdown()
         provenance = EvaluationProvenance.collect(
             run_directory=args.run_directory,
+            model_directory=model_directory,
             dataset=args.dataset,
             predictions=prediction_path,
             model=model,
@@ -177,6 +186,14 @@ class Main:
         output.parent.mkdir(parents=True, exist_ok=True)
         metadata = {
             "run_directory": str(args.run_directory),
+            "model_source": (
+                {
+                    "hub_model_id": args.hub_model_id,
+                    "hub_revision": args.hub_revision,
+                }
+                if args.hub_model_id is not None
+                else {"run_directory": str(args.run_directory)}
+            ),
             "dataset": str(args.dataset),
             "dataset_name": dataset.name,
             "candidate_seed_ranges": dataset.candidate_seed_ranges,

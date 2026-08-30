@@ -1,4 +1,5 @@
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 import torch
@@ -37,3 +38,24 @@ def test_missing_checkpoint_is_reported(tmp_path: Path) -> None:
 
     with pytest.raises(FileNotFoundError, match="no model checkpoint"):
         ModelLoader.from_run_directory(tmp_path)
+
+
+def test_hub_snapshot_uses_local_run_layout(tmp_path: Path) -> None:
+    Args(training_args=TrainingArgs(bf16=False)).save(tmp_path, format="yaml")
+    (tmp_path / "model.safetensors").write_bytes(b"checkpoint")
+
+    with patch(
+        "molag.evaluation._loader.snapshot_download",
+        return_value=str(tmp_path),
+    ) as download:
+        snapshot = ModelLoader.from_hub(
+            "organisation/model",
+            revision="paper",
+        )
+
+    assert snapshot == tmp_path
+    download.assert_called_once()
+    assert download.call_args.kwargs["repo_id"] == "organisation/model"
+    assert download.call_args.kwargs["revision"] == "paper"
+    assert "config.yaml" in download.call_args.kwargs["allow_patterns"]
+    assert "calibration.json" in download.call_args.kwargs["allow_patterns"]

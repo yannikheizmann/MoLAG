@@ -1,5 +1,7 @@
 evaluation_args:
   run_directory: results
+  hub_model_id: null
+  hub_revision: null
   dataset: evaluation/molag_test_1_to_10_50k_seed10000000.yaml
   calibration_dataset: evaluation/molag_calibration_1_to_10_5k_seed7000000.yaml
   batch_size: 128

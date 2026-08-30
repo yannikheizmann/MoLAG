@@ -115,6 +115,13 @@ print(result.affinities)
 print(result.groups)
 ```
 
+Models uploaded with the training `push_to_hub` options can be loaded with the
+same interface:
+
+```python
+predictor = MoLAGPredictor.from_hub("organisation/model-name")
+```
+
 The predictor performs the same translation and scale normalization used during
 training, builds the complete geometric graph, applies the run's calibrated threshold,
 and returns the connected components as arrays of input-point indices.
