@@ -39,10 +39,18 @@ class ScaledConjunctionAffinityLoss:
     ) -> None:
         if max_tracker_nodes < 1:
             raise ValueError("max_tracker_nodes must be positive")
+        if connectivity_margin < 0:
+            raise ValueError("connectivity_margin must not be negative")
+        if separation_margin < 0:
+            raise ValueError("separation_margin must not be negative")
+        if spurious_margin < 0:
+            raise ValueError("spurious_margin must not be negative")
         if math.isnan(aggregation_beta) or aggregation_beta <= 0:
             raise ValueError("aggregation_beta must be positive")
         if math.isnan(delta_nontree) or delta_nontree < 0:
             raise ValueError("delta_nontree must not be negative")
+        if eps_spur < 0:
+            raise ValueError("eps_spur must not be negative")
         separation_power = (
             conjunct_scaling_power
             if separation_scaling_power is None
