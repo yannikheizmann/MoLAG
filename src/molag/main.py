@@ -23,6 +23,7 @@ from molag.evaluation import (
     AffinityMetrics,
     CombinedMetrics,
     Evaluator,
+    EvaluationResult,
     ModelLoader,
     ThresholdCalibrator,
 )
@@ -136,6 +137,8 @@ class Main:
             threshold,
             result,
             breakdown,
+            evaluator.sample_records(),
+            evaluator.tracker_records(),
             calibration is not None,
         )
         return result
@@ -147,11 +150,13 @@ class Main:
         threshold: float,
         metrics: dict[str, float],
         breakdown: dict,
+        samples: list[dict],
+        trackers: list[dict],
         calibrated: bool,
     ) -> None:
         output = args.run_directory / EVALUATION_RESULT_FILENAME
         output.parent.mkdir(parents=True, exist_ok=True)
-        payload = {
+        metadata = {
             "run_directory": str(args.run_directory),
             "dataset": str(args.dataset),
             "dataset_name": dataset.name,
@@ -162,10 +167,13 @@ class Main:
                 else None
             ),
             "threshold": threshold,
-            "metrics": metrics,
-            "breakdown": breakdown,
         }
-        output.write_text(json.dumps(payload, indent=2) + "\n")
+        EvaluationResult(
+            metrics=metrics,
+            breakdown=breakdown,
+            samples=samples,
+            trackers=trackers,
+        ).write(output, metadata)
 
     @staticmethod
     def _generate_eval_dataset(

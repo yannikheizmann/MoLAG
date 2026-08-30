@@ -59,6 +59,8 @@ def test_evaluate_runs_model_and_saves_results(tmp_path: Path) -> None:
     assert saved["metrics"] == metrics
     assert "by_n_trackers" in saved["breakdown"]
     assert "by_visible_leds" in saved["breakdown"]
+    assert (run_directory / "samples.csv").is_file()
+    assert (run_directory / "tracker_samples.csv").is_file()
     assert saved["dataset_name"] == "evaluation"
     assert saved["candidate_seed_ranges"] == [[100, 102]]
     assert saved["threshold"] == 0.5

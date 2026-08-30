@@ -8,6 +8,7 @@ from ._assessment import (
 from ._calibrator import CalibrationResult, ThresholdCalibrator
 from ._evaluator import Evaluator
 from ._loader import ModelLoader
+from ._result import EvaluationResult
 from .metrics import (
     AffinityMetrics,
     CombinedMetrics,
@@ -20,6 +21,7 @@ __all__ = [
     "CalibrationResult",
     "CombinedMetrics",
     "Evaluator",
+    "EvaluationResult",
     "GroupingFailureMode",
     "MetricsBase",
     "ModelLoader",

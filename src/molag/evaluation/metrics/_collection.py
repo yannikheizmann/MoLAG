@@ -43,3 +43,9 @@ class CombinedMetrics(MetricsBase):
                 raise ValueError(f"duplicate breakdown names: {names}")
             result.update(values)
         return result
+
+    def sample_records(self) -> list[dict[str, Any]]:
+        return [record for metric in self._metrics for record in metric.sample_records()]
+
+    def tracker_records(self) -> list[dict[str, Any]]:
+        return [record for metric in self._metrics for record in metric.tracker_records()]

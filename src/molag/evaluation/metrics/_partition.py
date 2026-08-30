@@ -283,3 +283,54 @@ class PartitionMetrics(MetricsBase):
                 str(key): value for key, value in sorted(by_visible_leds.items())
             },
         }
+
+    def sample_records(self) -> list[dict[str, Any]]:
+        records: list[dict[str, Any]] = []
+        for sample_index, (assessment, n_attached) in enumerate(
+            zip(self._assessments, self._spurious_attached, strict=True)
+        ):
+            complete, recovered, extractable = assessment.complete_tracker_counts(
+                self._complete_tracker_leds
+            )
+            n_real = sum(tracker.n_leds for tracker in assessment.trackers)
+            records.append(
+                {
+                    "sample_index": sample_index,
+                    "n_nodes": n_real + assessment.n_spurious,
+                    "n_real": n_real,
+                    "n_spurious": assessment.n_spurious,
+                    "n_spurious_attached": n_attached,
+                    "n_trackers": assessment.n_trackers,
+                    "n_trackers_correct": assessment.n_trackers_correct,
+                    "n_predicted_groups": len(assessment.partition.groups),
+                    "partition_correct": assessment.correct,
+                    "partition_real_only_correct": assessment.real_only_correct,
+                    "has_real_merge": assessment.has_real_merge,
+                    "has_real_split": assessment.has_real_split,
+                    "spurious_bridge": assessment.spurious_bridge,
+                    "failure_mode": assessment.failure_mode.value,
+                    "n_complete_trackers": complete,
+                    "n_complete_trackers_correct": recovered,
+                    "n_complete_trackers_extractable": extractable,
+                }
+            )
+        return records
+
+    def tracker_records(self) -> list[dict[str, Any]]:
+        records: list[dict[str, Any]] = []
+        for sample_index, assessment in enumerate(self._assessments):
+            for tracker in assessment.trackers:
+                records.append(
+                    {
+                        "sample_index": sample_index,
+                        "tracker_id": tracker.tracker_id,
+                        "n_leds": tracker.n_leds,
+                        "complete": tracker.n_leds == self._complete_tracker_leds,
+                        "correct": tracker.correct,
+                        "has_merge": tracker.has_merge,
+                        "has_split": tracker.has_split,
+                        "failure_mode": tracker.failure_mode.value,
+                        "component_id": tracker.component_id,
+                    }
+                )
+        return records

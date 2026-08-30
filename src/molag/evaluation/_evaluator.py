@@ -50,3 +50,11 @@ class Evaluator:
     def breakdown(self) -> dict[str, Any]:
         """Return structured diagnostics from the latest evaluation pass."""
         return self._metrics.breakdown()
+
+    def sample_records(self) -> list[dict[str, Any]]:
+        """Return scene-level records from the latest evaluation pass."""
+        return self._metrics.sample_records()
+
+    def tracker_records(self) -> list[dict[str, Any]]:
+        """Return tracker-level records from the latest evaluation pass."""
+        return self._metrics.tracker_records()

@@ -66,6 +66,30 @@ def test_partition_metrics_report_spurious_attachment_separately() -> None:
     assert breakdown["by_visible_leds"]["2"]["recovery_rate"] == 1.0
     assert breakdown["by_failure_mode"] == {"correct": 1}
 
+    assert metrics.sample_records() == [
+        {
+            "sample_index": 0,
+            "n_nodes": 3,
+            "n_real": 2,
+            "n_spurious": 1,
+            "n_spurious_attached": 1,
+            "n_trackers": 1,
+            "n_trackers_correct": 1,
+            "n_predicted_groups": 1,
+            "partition_correct": True,
+            "partition_real_only_correct": True,
+            "has_real_merge": False,
+            "has_real_split": False,
+            "spurious_bridge": False,
+            "failure_mode": "correct",
+            "n_complete_trackers": 1,
+            "n_complete_trackers_correct": 1,
+            "n_complete_trackers_extractable": 1,
+        }
+    ]
+    assert metrics.tracker_records()[0]["complete"] is True
+    assert metrics.tracker_records()[0]["failure_mode"] == "correct"
+
 
 def test_empty_metrics_return_empty_mapping() -> None:
     assert AffinityMetrics().compute() == {}

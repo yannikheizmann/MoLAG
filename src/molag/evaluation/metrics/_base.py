@@ -19,3 +19,11 @@ class MetricsBase(ABC, metaclass=RegistryMeta["MetricsBase"]):
     def breakdown(self) -> dict[str, Any]:
         """Return optional structured diagnostics accumulated with the metrics."""
         return {}
+
+    def sample_records(self) -> list[dict[str, Any]]:
+        """Return optional scene-level records from the latest evaluation."""
+        return []
+
+    def tracker_records(self) -> list[dict[str, Any]]:
+        """Return optional tracker-level records from the latest evaluation."""
+        return []
