@@ -12,6 +12,7 @@ from molag.config import (
     EVALUATION_RESULT_FILENAME,
     EvalDatasetGenerationArgs,
     EvaluationArgs,
+    PREDICTION_CACHE_FILENAME,
 )
 from molag.dataset import (
     DatasetConfig,
@@ -129,7 +130,9 @@ class Main:
             device=args.device,
             dataloader_num_workers=args.dataloader_num_workers,
         )
-        result = evaluator.evaluate()
+        predictions = evaluator.predict()
+        predictions.to_npz(args.run_directory / PREDICTION_CACHE_FILENAME)
+        result = evaluator.evaluate(predictions)
         breakdown = evaluator.breakdown()
         Main._save_evaluation_result(
             args,
@@ -167,6 +170,9 @@ class Main:
                 else None
             ),
             "threshold": threshold,
+            "predictions": str(
+                args.run_directory / PREDICTION_CACHE_FILENAME
+            ),
         }
         EvaluationResult(
             metrics=metrics,

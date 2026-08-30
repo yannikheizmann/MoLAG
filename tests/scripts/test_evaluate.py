@@ -11,6 +11,7 @@ from molag.config import (
     TrainingArgs,
 )
 from molag.dataset import EvalDataset, EvalSample
+from molag.evaluation import PredictionCache
 from molag.main import Main
 from molag.model import MoLAGModel
 from molag.model.gnn.blocks import upper_tri_mask
@@ -61,6 +62,9 @@ def test_evaluate_runs_model_and_saves_results(tmp_path: Path) -> None:
     assert "by_visible_leds" in saved["breakdown"]
     assert (run_directory / "samples.csv").is_file()
     assert (run_directory / "tracker_samples.csv").is_file()
+    predictions = PredictionCache.from_npz(run_directory / "predictions.npz")
+    assert len(predictions) == 3
+    assert saved["predictions"] == str(run_directory / "predictions.npz")
     assert saved["dataset_name"] == "evaluation"
     assert saved["candidate_seed_ranges"] == [[100, 102]]
     assert saved["threshold"] == 0.5

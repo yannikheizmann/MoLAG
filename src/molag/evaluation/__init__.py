@@ -8,6 +8,7 @@ from ._assessment import (
 from ._calibrator import CalibrationResult, ThresholdCalibrator
 from ._evaluator import Evaluator
 from ._loader import ModelLoader
+from ._predictions import PredictionCache, ScenePrediction
 from ._result import EvaluationResult
 from .metrics import (
     AffinityMetrics,
@@ -27,6 +28,8 @@ __all__ = [
     "ModelLoader",
     "PartitionAssessment",
     "PartitionMetrics",
+    "PredictionCache",
+    "ScenePrediction",
     "ThresholdCalibrator",
     "TrackerAssessment",
 ]
