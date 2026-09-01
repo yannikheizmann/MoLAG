@@ -1,7 +1,8 @@
 MoLAG
-Copyright 2026 Yannik Heizmann
+Copyright 2026 Yannik Heizmann and Harald Hoppe
 
-MoLAG was developed by Yannik Heizmann at Hochschule Offenburg.
+MoLAG was developed by Yannik Heizmann and Harald Hoppe at Offenburg University of
+Applied Sciences.
 
 If you use MoLAG in academic work, please cite the accompanying manuscript:
 "MoLAG: Monocular LED Assignment via a Graph Neural Network for Multi-Tracker

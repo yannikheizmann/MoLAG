@@ -3,7 +3,7 @@ site_description: Monocular LED assignment with a graph neural network
 site_url: https://yannikheizmann.github.io/MoLAG/
 repo_url: https://github.com/yannikheizmann/MoLAG
 repo_name: yannikheizmann/MoLAG
-copyright: Copyright &copy; 2026 Yannik Heizmann
+copyright: Copyright &copy; 2026 Yannik Heizmann and Harald Hoppe
 
 theme:
   name: material

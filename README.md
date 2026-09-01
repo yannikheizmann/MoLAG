@@ -186,8 +186,7 @@ and validation requirements. Please report suspected vulnerabilities according t
 ## Citation
 
 If you use MoLAG in academic work, please cite the software and accompanying
-manuscript using the metadata in [`CITATION.cff`](CITATION.cff). The citation metadata
-will be updated with the final author list and archival DOI when those are available.
+manuscript using the metadata in [`CITATION.cff`](CITATION.cff).
 
 ## License
 

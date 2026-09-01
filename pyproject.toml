@@ -12,6 +12,7 @@ license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
 authors = [
     { name = "Yannik Heizmann", email = "yheizman@stud.hs-offenburg.de" },
+    { name = "Harald Hoppe", email = "harald.hoppe@hs-offenburg.de" },
 ]
 keywords = [
     "graph-neural-network",
