@@ -26,6 +26,7 @@ theme:
 
 nav:
   - Home: index.md
+  - Paper: paper.md
   - Method:
       - Overview: method/index.md
       - Synthetic data: method/synthetic-data.md

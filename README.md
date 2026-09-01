@@ -7,11 +7,19 @@ candidate tracker groups.
 
 This repository contains the model, synthetic-data generator, structured affinity
 loss, finetuning workflow, held-out threshold calibration, evaluation, and calibrated
-inference API accompanying *MoLAG: Monocular LED Assignment via a Graph Neural Network
-for Multi-Tracker Surgical Navigation*.
+inference API accompanying [*MoLAG: monocular LED assignment via a graph neural network
+for multi-tracker surgical navigation*](https://yannikheizmann.github.io/MoLAG/paper/).
 
 The [project documentation](https://yannikheizmann.github.io/MoLAG/) introduces the
 method, reproducible workflows, extension interfaces, output artifacts, and public API.
+
+<p align="center">
+  <img
+    src="docs/assets/molag_architecture.svg"
+    alt="MoLAG architecture from point coordinates to pairwise affinities"
+    width="900"
+  >
+</p>
 
 ## Installation
 

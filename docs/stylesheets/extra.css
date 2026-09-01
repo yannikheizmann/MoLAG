@@ -52,3 +52,10 @@
 .homepage-actions .md-button {
   margin: 0;
 }
+
+.paper-viewer {
+  border: 1px solid var(--molag-blue);
+  height: min(78vh, 64rem);
+  margin-top: 1.5rem;
+  width: 100%;
+}
