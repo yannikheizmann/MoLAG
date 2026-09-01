@@ -28,6 +28,12 @@ The default finetuning profile uses bfloat16 arithmetic and is intended for a
 CUDA-capable system. Device and precision settings can be overridden through the CLI
 or a copied experiment profile.
 
+MoLAG does not require a `.env` file or any credentials for local training,
+evaluation, or inference. Weights & Biases reporting and Hugging Face Hub uploads are
+optional. Authenticate with the respective service's login command before enabling
+`report_to` or `push_to_hub` in the training configuration. Keep credentials outside
+experiment YAML files and never commit them to the repository.
+
 ## Reproducing the workflow
 
 The supplied profiles record the model, training, held-out dataset, calibration, and
@@ -170,6 +176,12 @@ implemented here.
 ```bash
 uv run --frozen --extra dev pytest
 ```
+
+## Contributing and security
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the development workflow, code conventions,
+and validation requirements. Please report suspected vulnerabilities according to
+[`SECURITY.md`](SECURITY.md) rather than through a public issue.
 
 ## Citation
 
