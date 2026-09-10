@@ -12,7 +12,7 @@ Please do not report suspected vulnerabilities in a public issue.
 
 Use GitHub's private vulnerability-reporting feature when it is available for the
 repository. Otherwise, contact Yannik Heizmann at
-`yheizman@stud.hs-offenburg.de` or Harald Hoppe at
+`research@yannikheizmann.com` or Harald Hoppe at
 `harald.hoppe@hs-offenburg.de`. Include:
 
 - the affected version or commit;

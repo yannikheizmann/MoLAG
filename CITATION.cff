@@ -5,11 +5,12 @@ title: "MoLAG: Monocular LED Assignment via a Graph Neural Network for Multi-Tra
 authors:
   - family-names: Heizmann
     given-names: Yannik
-    email: yheizman@stud.hs-offenburg.de
+    email: research@yannikheizmann.com
     affiliation: Offenburg University of Applied Sciences
   - family-names: Hoppe
     given-names: Harald
     email: harald.hoppe@hs-offenburg.de
+    orcid: https://orcid.org/0000-0002-4161-7838
     affiliation: Offenburg University of Applied Sciences
 repository-code: "https://github.com/yannikheizmann/MoLAG"
 version: 0.1.0
@@ -21,11 +22,12 @@ preferred-citation:
   authors:
     - family-names: Heizmann
       given-names: Yannik
-      email: yheizman@stud.hs-offenburg.de
+      email: research@yannikheizmann.com
       affiliation: Offenburg University of Applied Sciences
     - family-names: Hoppe
       given-names: Harald
       email: harald.hoppe@hs-offenburg.de
+      orcid: https://orcid.org/0000-0002-4161-7838
       affiliation: Offenburg University of Applied Sciences
   year: 2026
   url: "https://yannikheizmann.github.io/MoLAG/paper/"
