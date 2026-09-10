@@ -6,6 +6,7 @@ authors:
   - family-names: Heizmann
     given-names: Yannik
     email: research@yannikheizmann.com
+    orcid: https://orcid.org/0009-0008-7010-1321
     affiliation: Offenburg University of Applied Sciences
   - family-names: Hoppe
     given-names: Harald
@@ -23,6 +24,7 @@ preferred-citation:
     - family-names: Heizmann
       given-names: Yannik
       email: research@yannikheizmann.com
+      orcid: https://orcid.org/0009-0008-7010-1321
       affiliation: Offenburg University of Applied Sciences
     - family-names: Hoppe
       given-names: Harald
