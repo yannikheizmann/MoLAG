@@ -3,7 +3,10 @@
 MoLAG is presented in the accompanying manuscript:
 
 > Yannik Heizmann and Harald Hoppe. *MoLAG: monocular LED assignment via a graph
-> neural network for multi-tracker surgical navigation*. 2026.
+> neural network for multi-tracker surgical navigation*. Submitted manuscript, 2026.
+
+The PDF below is the version submitted to the *International Journal of Computer
+Assisted Radiology and Surgery*.
 
 <p>
   <a class="md-button md-button--primary" href="../assets/molag-paper.pdf">
