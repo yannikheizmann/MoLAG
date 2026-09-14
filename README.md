@@ -1,5 +1,12 @@
 # MoLAG
 
+[![Documentation](https://img.shields.io/badge/documentation-GitHub%20Pages-087E8B?style=flat-square)](https://yannikheizmann.github.io/MoLAG/)
+[![Paper](https://img.shields.io/badge/paper-manuscript-76528B?style=flat-square)](https://yannikheizmann.github.io/MoLAG/paper/)
+[![Supplement](https://img.shields.io/badge/paper-supplement-9B7EBD?style=flat-square)](https://yannikheizmann.github.io/MoLAG/assets/molag-supplementary-information.pdf)
+[![CI](https://img.shields.io/github/actions/workflow/status/yannikheizmann/MoLAG/ci.yml?branch=main&style=flat-square&label=CI)](https://github.com/yannikheizmann/MoLAG/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/python-3.11%2B-3776AB?style=flat-square&logo=python&logoColor=white)](https://github.com/yannikheizmann/MoLAG/blob/main/pyproject.toml)
+[![License](https://img.shields.io/github/license/yannikheizmann/MoLAG?style=flat-square)](https://github.com/yannikheizmann/MoLAG/blob/main/LICENSE)
+
 MoLAG performs monocular LED assignment for scenes containing multiple coded rigid
 trackers. It predicts a same-tracker affinity for every unordered pair of localised
 LED points and returns connected components of the thresholded affinity graph as
