@@ -10,7 +10,10 @@ Assisted Radiology and Surgery*.
 
 <p>
   <a class="md-button md-button--primary" href="../assets/molag-paper.pdf">
-    Download the PDF
+    Download the manuscript
+  </a>
+  <a class="md-button" href="../assets/molag-supplementary-information.pdf">
+    Download the Supplementary Information
   </a>
 </p>
 
