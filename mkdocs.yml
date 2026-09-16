@@ -7,8 +7,8 @@ copyright: Copyright &copy; 2026 Yannik Heizmann and Harald Hoppe
 
 theme:
   name: material
-  logo: assets/tracker_configuration.svg
-  favicon: assets/tracker_configuration.svg
+  logo: assets/molag_logo_white.svg
+  favicon: assets/molag_favicon.svg
   font:
     text: Inter
     code: JetBrains Mono
