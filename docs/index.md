@@ -1,4 +1,6 @@
 ---
+title: Graph Neural Network for Monocular LED Assignment
+description: MoLAG is an open-source graph neural network for monocular LED assignment in multi-tracker surgical navigation.
 hide:
   - navigation
   - toc

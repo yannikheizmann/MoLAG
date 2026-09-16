@@ -1,3 +1,8 @@
+---
+title: MoLAG Paper
+description: Manuscript and supplementary information for MoLAG, a graph neural network for monocular LED assignment in multi-tracker surgical navigation.
+---
+
 # Paper
 
 MoLAG is presented in the accompanying manuscript:
